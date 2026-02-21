@@ -1,0 +1,36 @@
+name: CI (pnpm)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  lint-typecheck-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Lint
+        run: pnpm run lint
+      - name: Typecheck
+        run: pnpm run typecheck
+      - name: Build
+        run: pnpm run build
+      - name: Install playground deps
+        run: pnpm install --no-frozen-lockfile
+        working-directory: playground
+      - name: Build playground
+        run: pnpm run build
+        working-directory: playground
+      - name: Install Nuxt playground deps
+        run: pnpm install --no-frozen-lockfile
+        working-directory: playground-nuxt
+      - name: Build Nuxt playground
+        run: pnpm run build
+        working-directory: playground-nuxt

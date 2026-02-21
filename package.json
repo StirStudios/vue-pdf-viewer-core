@@ -1,0 +1,99 @@
+{
+  "name": "vue-pdf-viewer-core",
+  "version": "0.1.0",
+  "description": "Fast, lightweight PDF viewer for Vue 3 and Nuxt 4 powered by pdf.js",
+  "type": "module",
+  "license": "MIT",
+  "author": "Stir Studios",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/StirStudios/vue-pdf-viewer-core"
+  },
+  "homepage": "https://github.com/StirStudios/vue-pdf-viewer-core",
+  "keywords": [
+    "vue",
+    "vue3",
+    "nuxt",
+    "nuxt4",
+    "pdf",
+    "pdfjs",
+    "viewer",
+    "pdf-viewer",
+    "pdf-viewer-vue"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./style.css": "./dist/style.css",
+    "./nuxt": {
+      "types": "./dist/nuxt/module.d.ts",
+      "import": "./dist/nuxt/module.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "nuxt.d.ts"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "build": "npm run build:lib && npm run build:nuxt",
+    "build:lib": "vite build",
+    "build:nuxt": "tsup src/nuxt/module.ts --format esm --dts --out-dir dist/nuxt --external nuxt,@nuxt/kit",
+    "dev": "vite",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "vue-tsc --noEmit",
+    "release": "bash scripts/release.sh",
+    "publish:check": "bash scripts/publish-check.sh",
+    "prepublishOnly": "npm run lint && npm run typecheck && npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "peerDependencies": {
+    "@nuxt/kit": "^4.0.0",
+    "nuxt": "^4.0.0",
+    "vue": "^3.3.0"
+  },
+  "peerDependenciesMeta": {
+    "nuxt": {
+      "optional": true
+    },
+    "@nuxt/kit": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "pdfjs-dist": "^4.9.155"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.10.0",
+    "@nuxt/kit": "^4.0.0",
+    "@types/node": "^20.11.30",
+    "@typescript-eslint/eslint-plugin": "^8.3.0",
+    "@typescript-eslint/parser": "^8.3.0",
+    "@vitejs/plugin-vue": "^5.1.4",
+    "@vue/test-utils": "^2.4.6",
+    "eslint": "^9.10.0",
+    "eslint-plugin-vue": "^9.28.0",
+    "globals": "^15.9.0",
+    "jsdom": "^24.0.0",
+    "nuxt": "^4.0.0",
+    "tsup": "^8.0.1",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.0",
+    "vitest": "^2.1.1",
+    "vue": "^3.4.0",
+    "vue-eslint-parser": "^9.4.3",
+    "vue-tsc": "^2.0.29"
+  }
+}
