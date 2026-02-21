@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -19,6 +23,8 @@ jobs:
           cache: "npm"
       - name: Install root deps
         run: npm install
+      - name: Build package artifacts
+        run: npm run build
       - name: Install Nuxt playground deps
         run: npm install
         working-directory: playground-nuxt
