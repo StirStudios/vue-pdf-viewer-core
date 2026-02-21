@@ -66,6 +66,7 @@ const renderTasks = new Map<
 const renderedPages = reactive(new Set<number>());
 const renderedScale = reactive(new Map<number, number>());
 const queuedPages = reactive(new Set<number>());
+const pendingCanvasPages = reactive(new Set<number>());
 const activeRenders = ref(0);
 const currentVirtualPages = ref(new Set<number>());
 const pageGapPx = ref(16);
@@ -153,6 +154,16 @@ function setCanvasRef(
   }
 
   canvasElements.set(pageNumber, element);
+
+  if (
+    pendingCanvasPages.has(pageNumber) &&
+    currentVirtualPages.value.has(pageNumber) &&
+    !renderedPages.has(pageNumber)
+  ) {
+    pendingCanvasPages.delete(pageNumber);
+    queuedPages.add(pageNumber);
+    void processRenderQueue();
+  }
 }
 
 function debounce<T extends (...args: never[]) => void>(
@@ -293,6 +304,7 @@ async function renderPage(
   const canvas = canvasElements.get(pageNumber);
 
   if (!canvas) {
+    pendingCanvasPages.add(pageNumber);
     return;
   }
   if (
@@ -466,6 +478,7 @@ function syncVirtualWindow(centerPage: number): void {
   for (const page of Array.from(queuedPages)) {
     if (!nextVirtualPages.has(page)) {
       queuedPages.delete(page);
+      pendingCanvasPages.delete(page);
     }
   }
 
@@ -547,6 +560,7 @@ async function loadPdf(): Promise<void> {
   renderedPages.clear();
   renderedScale.clear();
   queuedPages.clear();
+  pendingCanvasPages.clear();
   currentVirtualPages.value = new Set();
 
   try {
