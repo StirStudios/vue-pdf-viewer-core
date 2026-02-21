@@ -1,68 +1,68 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import type { PdfToolbarProps } from '../types'
-import Icon from './Icon.vue'
+import { ref, watch } from "vue";
+import type { PdfToolbarProps } from "../types";
+import Icon from "./Icon.vue";
 
-const props = defineProps<PdfToolbarProps>()
+const props = defineProps<PdfToolbarProps>();
 
 const emit = defineEmits([
-  'first-page',
-  'prev-page',
-  'commit-page',
-  'next-page',
-  'zoom-out',
-  'fit-width',
-  'zoom-in',
-  'download',
-  'print',
-  'toggle-fullscreen',
-  'zoom-100',
-  'last-page',
-])
+  "first-page",
+  "prev-page",
+  "commit-page",
+  "next-page",
+  "zoom-out",
+  "fit-width",
+  "zoom-in",
+  "download",
+  "print",
+  "toggle-fullscreen",
+  "zoom-100",
+  "last-page",
+]);
 
-const pageInput = ref(1)
-const menuRef = ref<HTMLDetailsElement | null>(null)
+const pageInput = ref(1);
+const menuRef = ref<HTMLDetailsElement | null>(null);
 const tooltip = ref<{ text: string; x: number; y: number; visible: boolean }>({
-  text: '',
+  text: "",
   x: 0,
   y: 0,
   visible: false,
-})
+});
 
 watch(
   () => props.currentPage,
   (value) => {
-    pageInput.value = value
+    pageInput.value = value;
   },
   { immediate: true },
-)
+);
 
 function commitPageInput(): void {
-  emit('commit-page', pageInput.value)
+  emit("commit-page", pageInput.value);
 }
 
 function showTooltip(event: Event, text: string): void {
-  const target = event.currentTarget
+  const target = event.currentTarget;
   if (!(target instanceof HTMLElement)) {
-    return
+    return;
   }
 
-  const rect = target.getBoundingClientRect()
+  const rect = target.getBoundingClientRect();
   tooltip.value = {
     text,
     x: rect.left + rect.width / 2,
     y: rect.bottom + 8,
     visible: true,
-  }
+  };
 }
 
 function hideTooltip(): void {
-  tooltip.value = { ...tooltip.value, visible: false }
+  tooltip.value = { ...tooltip.value, visible: false };
 }
 
 function closeMenu(): void {
   if (menuRef.value) {
-    menuRef.value.open = false
+    menuRef.value.open = false;
   }
 }
 </script>
@@ -110,8 +110,10 @@ function closeMenu(): void {
           type="number"
           @blur="commitPageInput"
           @keyup.enter="commitPageInput"
-        >
-        <span class="lpv-page-total"> {{ hasMultiplePages ? `of ${totalPages || 1}` : '1 of 1' }} </span>
+        />
+        <span class="lpv-page-total">
+          {{ hasMultiplePages ? `of ${totalPages || 1}` : "1 of 1" }}
+        </span>
         <button
           v-if="hasMultiplePages"
           aria-label="Next page"
@@ -202,8 +204,14 @@ function closeMenu(): void {
         class="lpv-icon-btn lpv-desktop-action"
         type="button"
         :data-tooltip="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'"
-        @mouseenter="(event) => showTooltip(event, isFullscreen ? 'Exit fullscreen' : 'Fullscreen')"
-        @focus="(event) => showTooltip(event, isFullscreen ? 'Exit fullscreen' : 'Fullscreen')"
+        @mouseenter="
+          (event) =>
+            showTooltip(event, isFullscreen ? 'Exit fullscreen' : 'Fullscreen')
+        "
+        @focus="
+          (event) =>
+            showTooltip(event, isFullscreen ? 'Exit fullscreen' : 'Fullscreen')
+        "
         @mouseleave="hideTooltip"
         @blur="hideTooltip"
         @click="emit('toggle-fullscreen')"
@@ -224,15 +232,92 @@ function closeMenu(): void {
           <Icon name="ellipsis-vertical" :size="20" :stroke-width="2.5" />
         </summary>
         <div class="lpv-menu-panel">
-          <button class="lpv-menu-item" type="button" @click="() => { closeMenu(); emit('download') }">Download</button>
-          <button class="lpv-menu-item" type="button" @click="() => { closeMenu(); emit('print') }">Print</button>
-          <button class="lpv-menu-item" type="button" @click="() => { closeMenu(); emit('toggle-fullscreen') }">
-            {{ isFullscreen ? 'Exit fullscreen' : 'Fullscreen' }}
+          <button
+            class="lpv-menu-item"
+            type="button"
+            @click="
+              () => {
+                closeMenu();
+                emit('download');
+              }
+            "
+          >
+            Download
           </button>
-          <button class="lpv-menu-item" type="button" @click="() => { closeMenu(); emit('fit-width') }">Fit to width</button>
-          <button class="lpv-menu-item" type="button" @click="() => { closeMenu(); emit('zoom-100') }">Zoom to 100%</button>
-          <button v-if="hasMultiplePages" class="lpv-menu-item" type="button" @click="() => { closeMenu(); emit('first-page') }">First page</button>
-          <button v-if="hasMultiplePages" class="lpv-menu-item" type="button" @click="() => { closeMenu(); emit('last-page') }">Last page</button>
+          <button
+            class="lpv-menu-item"
+            type="button"
+            @click="
+              () => {
+                closeMenu();
+                emit('print');
+              }
+            "
+          >
+            Print
+          </button>
+          <button
+            class="lpv-menu-item"
+            type="button"
+            @click="
+              () => {
+                closeMenu();
+                emit('toggle-fullscreen');
+              }
+            "
+          >
+            {{ isFullscreen ? "Exit fullscreen" : "Fullscreen" }}
+          </button>
+          <button
+            class="lpv-menu-item"
+            type="button"
+            @click="
+              () => {
+                closeMenu();
+                emit('fit-width');
+              }
+            "
+          >
+            Fit to width
+          </button>
+          <button
+            class="lpv-menu-item"
+            type="button"
+            @click="
+              () => {
+                closeMenu();
+                emit('zoom-100');
+              }
+            "
+          >
+            Zoom to 100%
+          </button>
+          <button
+            v-if="hasMultiplePages"
+            class="lpv-menu-item"
+            type="button"
+            @click="
+              () => {
+                closeMenu();
+                emit('first-page');
+              }
+            "
+          >
+            First page
+          </button>
+          <button
+            v-if="hasMultiplePages"
+            class="lpv-menu-item"
+            type="button"
+            @click="
+              () => {
+                closeMenu();
+                emit('last-page');
+              }
+            "
+          >
+            Last page
+          </button>
         </div>
       </details>
     </div>

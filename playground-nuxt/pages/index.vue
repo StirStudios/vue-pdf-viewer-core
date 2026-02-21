@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from "vue";
 
-const sampleUrl = 'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf'
-const pdfUrl = ref(sampleUrl)
-const inputUrl = ref(sampleUrl)
+const sampleUrl =
+  "https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf";
+const pdfUrl = ref(sampleUrl);
+const inputUrl = ref(sampleUrl);
 
 function applyUrl(): void {
-  pdfUrl.value = inputUrl.value
+  pdfUrl.value = inputUrl.value;
 }
 </script>
 
@@ -18,7 +19,12 @@ function applyUrl(): void {
     </section>
 
     <section class="controls">
-      <input v-model="inputUrl" class="input" type="url" placeholder="Paste a PDF URL" />
+      <input
+        v-model="inputUrl"
+        class="input"
+        type="url"
+        placeholder="Paste a PDF URL"
+      />
       <button class="button" type="button" @click="applyUrl">Load PDF</button>
     </section>
 
@@ -39,7 +45,7 @@ function applyUrl(): void {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-family: "Space Grotesk", system-ui, sans-serif;
 }
 
 .hero {

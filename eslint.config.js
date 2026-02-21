@@ -1,38 +1,44 @@
-import js from '@eslint/js'
-import vue from 'eslint-plugin-vue'
-import tseslint from '@typescript-eslint/eslint-plugin'
-import tsParser from '@typescript-eslint/parser'
-import vueParser from 'vue-eslint-parser'
-import globals from 'globals'
+import js from "@eslint/js";
+import vue from "eslint-plugin-vue";
+import tseslint from "@typescript-eslint/eslint-plugin";
+import tsParser from "@typescript-eslint/parser";
+import vueParser from "vue-eslint-parser";
+import globals from "globals";
 
 export default [
   js.configs.recommended,
   {
-    files: ['**/*.ts', '**/*.tsx'],
+    files: ["**/*.ts", "**/*.tsx"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        sourceType: 'module',
+        sourceType: "module",
       },
       globals: {
         ...globals.browser,
       },
     },
     plugins: {
-      '@typescript-eslint': tseslint,
+      "@typescript-eslint": tseslint,
     },
     rules: {
       ...tseslint.configs.recommended.rules,
+      "no-console": ["error", { allow: ["warn", "error"] }],
+      "no-duplicate-imports": "error",
+      "sort-imports": [
+        "error",
+        { ignoreCase: true, ignoreDeclarationSort: true },
+      ],
     },
   },
   {
-    files: ['**/*.vue'],
+    files: ["**/*.vue"],
     languageOptions: {
       parser: vueParser,
       parserOptions: {
         parser: tsParser,
-        sourceType: 'module',
-        extraFileExtensions: ['.vue'],
+        sourceType: "module",
+        extraFileExtensions: [".vue"],
       },
       globals: {
         ...globals.browser,
@@ -40,16 +46,28 @@ export default [
     },
     plugins: {
       vue,
-      '@typescript-eslint': tseslint,
+      "@typescript-eslint": tseslint,
     },
     rules: {
-      ...vue.configs['flat/recommended'].rules,
+      ...vue.configs["flat/recommended"].rules,
       ...tseslint.configs.recommended.rules,
-      'vue/multi-word-component-names': 'off',
+      "vue/multi-word-component-names": "off",
+      "no-console": ["error", { allow: ["warn", "error"] }],
+      "no-duplicate-imports": "error",
+      "sort-imports": [
+        "error",
+        { ignoreCase: true, ignoreDeclarationSort: true },
+      ],
     },
   },
   {
-    files: ['**/*.config.ts', '**/*.config.js', 'vite.config.ts', 'playground/vite.config.ts'],
+    files: [
+      "**/*.config.ts",
+      "**/*.config.js",
+      "vite.config.ts",
+      "playground/vite.config.ts",
+      "scripts/**/*.mjs",
+    ],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -58,13 +76,13 @@ export default [
   },
   {
     ignores: [
-      'dist/**',
-      'node_modules/**',
-      'playground/dist/**',
-      '.nuxt/**',
-      'playground-nuxt/.nuxt/**',
-      '.output/**',
-      'playground-nuxt/.output/**',
+      "dist/**",
+      "node_modules/**",
+      "playground/dist/**",
+      ".nuxt/**",
+      "playground-nuxt/.nuxt/**",
+      ".output/**",
+      "playground-nuxt/.output/**",
     ],
   },
-]
+];

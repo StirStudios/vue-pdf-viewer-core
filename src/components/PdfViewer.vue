@@ -8,9 +8,9 @@ import {
   reactive,
   ref,
   watch,
-} from 'vue'
-import PdfToolbar from './PdfToolbar.vue'
-import type { PdfViewerProps } from '../types'
+} from "vue";
+import PdfToolbar from "./PdfToolbar.vue";
+import type { PdfViewerProps } from "../types";
 
 const props = withDefaults(defineProps<PdfViewerProps>(), {
   withCredentials: false,
@@ -23,247 +23,262 @@ const props = withDefaults(defineProps<PdfViewerProps>(), {
   maxConcurrentRenders: 2,
   virtualWindowSize: 2,
   showToolbar: true,
-})
+});
 
 const emit = defineEmits<{
-  (event: 'page-change', page: number): void
-  (event: 'load-error', error: unknown): void
-  (event: 'action-error', error: unknown): void
-}>()
+  (event: "page-change", page: number): void;
+  (event: "load-error", error: unknown): void;
+  (event: "action-error", error: unknown): void;
+}>();
 
-const scrollContainerRef = ref<HTMLElement | null>(null)
-const isLoading = ref(false)
-const errorMessage = ref('')
-const actionMessage = ref('')
-const totalPages = ref(0)
-const currentPage = ref(props.initialPage)
-const scale = ref(props.initialScale)
-const isFitWidth = ref(props.fitToWidth)
-const basePageHeight = ref(0)
-const isFullscreen = ref(false)
+const scrollContainerRef = ref<HTMLElement | null>(null);
+const pagesContainerRef = ref<HTMLElement | null>(null);
+const isLoading = ref(false);
+const errorMessage = ref("");
+const actionMessage = ref("");
+const totalPages = ref(0);
+const currentPage = ref(props.initialPage);
+const scale = ref(props.initialScale);
+const isFitWidth = ref(props.fitToWidth);
+const basePageHeight = ref(0);
+const isFullscreen = ref(false);
 
-let pdfjs: typeof import('pdfjs-dist') | null = null
-let pdfDocument: import('pdfjs-dist/types/src/display/api').PDFDocumentProxy | null = null
-let currentLoadTask: import('pdfjs-dist/types/src/display/api').PDFDocumentLoadingTask | null = null
-let intersectionObserver: IntersectionObserver | null = null
-let renderToken = 0
-let basePageWidth = 0
-let resizeObserver: ResizeObserver | null = null
-let fullscreenListener: (() => void) | null = null
-let scrollListener: (() => void) | null = null
-let documentScrollListener: (() => void) | null = null
+let pdfjs: typeof import("pdfjs-dist") | null = null;
+let pdfDocument:
+  | import("pdfjs-dist/types/src/display/api").PDFDocumentProxy
+  | null = null;
+let currentLoadTask:
+  | import("pdfjs-dist/types/src/display/api").PDFDocumentLoadingTask
+  | null = null;
+let renderToken = 0;
+let basePageWidth = 0;
+let resizeObserver: ResizeObserver | null = null;
+let fullscreenListener: (() => void) | null = null;
+let scrollListener: (() => void) | null = null;
+let documentScrollListener: (() => void) | null = null;
 
-const pageElements = new Map<number, HTMLElement>()
-const canvasElements = new Map<number, HTMLCanvasElement>()
-const renderTasks = new Map<number, import('pdfjs-dist/types/src/display/api').RenderTask>()
-const renderedPages = reactive(new Set<number>())
-const renderedScale = reactive(new Map<number, number>())
-const queuedPages = reactive(new Set<number>())
-const activeRenders = ref(0)
-const currentVirtualPages = ref(new Set<number>())
+const pageElements = new Map<number, HTMLElement>();
+const canvasElements = new Map<number, HTMLCanvasElement>();
+const renderTasks = new Map<
+  number,
+  import("pdfjs-dist/types/src/display/api").RenderTask
+>();
+const renderedPages = reactive(new Set<number>());
+const renderedScale = reactive(new Map<number, number>());
+const queuedPages = reactive(new Set<number>());
+const activeRenders = ref(0);
+const currentVirtualPages = ref(new Set<number>());
+const pageGapPx = ref(16);
 
-const pageNumbers = computed(() => {
-  return Array.from({ length: totalPages.value }, (_, idx) => idx + 1)
-})
+const virtualPageNumbers = computed(() => {
+  return Array.from(currentVirtualPages.value).sort((a, b) => a - b);
+});
 
-const canGoPrev = computed(() => currentPage.value > 1)
-const canGoNext = computed(() => currentPage.value < totalPages.value)
-const hasMultiplePages = computed(() => totalPages.value > 1)
-const zoomPercent = computed(() => `${Math.round(scale.value * 100)}%`)
+const canGoPrev = computed(() => currentPage.value > 1);
+const canGoNext = computed(() => currentPage.value < totalPages.value);
+const hasMultiplePages = computed(() => totalPages.value > 1);
+const zoomPercent = computed(() => `${Math.round(scale.value * 100)}%`);
 const estimatedPageHeight = computed(() => {
-  const height = basePageHeight.value * scale.value
+  const height = basePageHeight.value * scale.value;
 
-  return Math.max(Math.round(height || 0), 220)
-})
+  return Math.max(Math.round(height || 0), 220);
+});
+const topSpacerHeight = computed(() => {
+  const firstVirtualPage = virtualPageNumbers.value[0];
 
-const minScale = computed(() => props.minScale)
-const maxScale = computed(() => props.maxScale)
-const zoomStep = computed(() => props.zoomStep)
-const maxConcurrentRenders = computed(() => props.maxConcurrentRenders)
-const virtualWindowSize = computed(() => props.virtualWindowSize)
+  if (!firstVirtualPage) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    (firstVirtualPage - 1) * (estimatedPageHeight.value + pageGapPx.value),
+  );
+});
+const bottomSpacerHeight = computed(() => {
+  const lastVirtualPage =
+    virtualPageNumbers.value[virtualPageNumbers.value.length - 1];
+
+  if (!lastVirtualPage) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    (totalPages.value - lastVirtualPage) *
+      (estimatedPageHeight.value + pageGapPx.value),
+  );
+});
+
+const minScale = computed(() => props.minScale);
+const maxScale = computed(() => props.maxScale);
+const zoomStep = computed(() => props.zoomStep);
+const maxConcurrentRenders = computed(() => props.maxConcurrentRenders);
+const virtualWindowSize = computed(() => props.virtualWindowSize);
 
 function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max)
+  return Math.min(Math.max(value, min), max);
 }
 
 function filenameFromSrc(src: string): string {
   try {
-    const url = new URL(src, window.location.origin)
-    const match = url.pathname.split('/').filter(Boolean).pop()
+    const url = new URL(src, window.location.origin);
+    const match = url.pathname.split("/").filter(Boolean).pop();
 
-    return match || 'document.pdf'
+    return match || "document.pdf";
   } catch {
-    return 'document.pdf'
+    return "document.pdf";
   }
 }
 
-function setPageRef(pageNumber: number, element: Element | ComponentPublicInstance | null): void {
+function setPageRef(
+  pageNumber: number,
+  element: Element | ComponentPublicInstance | null,
+): void {
   if (!(element instanceof HTMLElement)) {
-    pageElements.delete(pageNumber)
-    return
+    pageElements.delete(pageNumber);
+    return;
   }
 
-  pageElements.set(pageNumber, element)
+  pageElements.set(pageNumber, element);
 }
 
-function setCanvasRef(pageNumber: number, element: Element | ComponentPublicInstance | null): void {
+function setCanvasRef(
+  pageNumber: number,
+  element: Element | ComponentPublicInstance | null,
+): void {
   if (!(element instanceof HTMLCanvasElement)) {
-    canvasElements.delete(pageNumber)
-    return
+    canvasElements.delete(pageNumber);
+    return;
   }
 
-  canvasElements.set(pageNumber, element)
+  canvasElements.set(pageNumber, element);
 }
 
-function debounce<T extends (...args: never[]) => void>(fn: T, delay: number): T {
-  let timeout: number | null = null
+function debounce<T extends (...args: never[]) => void>(
+  fn: T,
+  delay: number,
+): T {
+  let timeout: number | null = null;
 
   return ((...args: never[]) => {
     if (timeout) {
-      window.clearTimeout(timeout)
+      window.clearTimeout(timeout);
     }
 
-    timeout = window.setTimeout(() => fn(...args), delay)
-  }) as T
+    timeout = window.setTimeout(() => fn(...args), delay);
+  }) as T;
+}
+
+function updatePageGap(): void {
+  if (!pagesContainerRef.value) {
+    return;
+  }
+
+  const styles = getComputedStyle(pagesContainerRef.value);
+  const parsedGap = Number.parseFloat(styles.rowGap || styles.gap || "");
+
+  pageGapPx.value = Number.isFinite(parsedGap) ? parsedGap : 16;
 }
 
 function setupFullscreenListener(): void {
   const handler = () => {
-    const element = scrollContainerRef.value
-    isFullscreen.value = !!element && document.fullscreenElement === element
-  }
+    const element = scrollContainerRef.value;
+    isFullscreen.value = !!element && document.fullscreenElement === element;
+  };
 
-  fullscreenListener = handler
-  document.addEventListener('fullscreenchange', handler)
+  fullscreenListener = handler;
+  document.addEventListener("fullscreenchange", handler);
 }
 
 function setupScrollListeners(): void {
-  const handler = debounce(updateCurrentPageFromViewport, 20)
+  const handler = debounce(updateCurrentPageFromViewport, 20);
 
-  scrollListener = () => handler()
-  documentScrollListener = () => handler()
+  scrollListener = () => handler();
+  documentScrollListener = () => handler();
 
-  window.addEventListener('scroll', scrollListener, { passive: true })
-  document.addEventListener('scroll', documentScrollListener, { capture: true, passive: true })
+  window.addEventListener("scroll", scrollListener, { passive: true });
+  document.addEventListener("scroll", documentScrollListener, {
+    capture: true,
+    passive: true,
+  });
 }
 
 function cleanupListeners(): void {
   if (fullscreenListener) {
-    document.removeEventListener('fullscreenchange', fullscreenListener)
+    document.removeEventListener("fullscreenchange", fullscreenListener);
   }
   if (scrollListener) {
-    window.removeEventListener('scroll', scrollListener)
+    window.removeEventListener("scroll", scrollListener);
   }
   if (documentScrollListener) {
-    document.removeEventListener('scroll', documentScrollListener, true)
+    document.removeEventListener("scroll", documentScrollListener, true);
   }
 }
 
 function setupResizeObserver(): void {
   if (!scrollContainerRef.value) {
-    return
+    return;
   }
 
   const handler = debounce(async () => {
+    updatePageGap();
+
     if (isFitWidth.value && totalPages.value > 0) {
-      await fitToWidth()
+      await fitToWidth();
     }
 
-    updateCurrentPageFromViewport()
-  }, 100)
+    updateCurrentPageFromViewport();
+  }, 100);
 
   resizeObserver = new ResizeObserver(() => {
-    void handler()
-  })
+    void handler();
+  });
 
-  resizeObserver.observe(scrollContainerRef.value)
+  resizeObserver.observe(scrollContainerRef.value);
 }
 
 function cleanupResizeObserver(): void {
-  resizeObserver?.disconnect()
-  resizeObserver = null
+  resizeObserver?.disconnect();
+  resizeObserver = null;
 }
 
-async function ensurePdfjs(): Promise<typeof import('pdfjs-dist')> {
+async function ensurePdfjs(): Promise<typeof import("pdfjs-dist")> {
   if (pdfjs) {
-    return pdfjs
+    return pdfjs;
   }
 
-  const loadedPdfjs = await import('pdfjs-dist')
-  const workerModule = await import('pdfjs-dist/build/pdf.worker.min.mjs?url')
+  const loadedPdfjs = await import("pdfjs-dist");
+  const workerModule = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
 
-  loadedPdfjs.GlobalWorkerOptions.workerSrc = workerModule.default
-  pdfjs = loadedPdfjs
-  return loadedPdfjs
+  loadedPdfjs.GlobalWorkerOptions.workerSrc = workerModule.default;
+  pdfjs = loadedPdfjs;
+  return loadedPdfjs;
 }
 
 async function calculateFitScale(): Promise<number> {
   if (!scrollContainerRef.value || !basePageWidth) {
-    return 1
+    return 1;
   }
 
-  const containerStyle = getComputedStyle(scrollContainerRef.value)
-  const containerPaddingLeft = Number.parseFloat(containerStyle.paddingLeft) || 0
-  const containerPaddingRight = Number.parseFloat(containerStyle.paddingRight) || 0
-  const scrollbarWidth = scrollContainerRef.value.offsetWidth - scrollContainerRef.value.clientWidth
-  const fitSafetyInset = Math.max(scrollbarWidth, 0)
+  const containerStyle = getComputedStyle(scrollContainerRef.value);
+  const containerPaddingLeft =
+    Number.parseFloat(containerStyle.paddingLeft) || 0;
+  const containerPaddingRight =
+    Number.parseFloat(containerStyle.paddingRight) || 0;
+  const scrollbarWidth =
+    scrollContainerRef.value.offsetWidth - scrollContainerRef.value.clientWidth;
+  const fitSafetyInset = Math.max(scrollbarWidth, 0);
 
   const width = Math.max(
-    scrollContainerRef.value.clientWidth
-      - containerPaddingLeft
-      - containerPaddingRight
-      - fitSafetyInset,
+    scrollContainerRef.value.clientWidth -
+      containerPaddingLeft -
+      containerPaddingRight -
+      fitSafetyInset,
     200,
-  )
+  );
 
-  return clamp(width / basePageWidth, minScale.value, maxScale.value)
-}
-
-function setupPageObserver(): void {
-  intersectionObserver?.disconnect()
-  intersectionObserver = new IntersectionObserver(
-    (entries) => {
-      const pagesToQueue: number[] = []
-      const visiblePages: number[] = []
-
-      for (const entry of entries) {
-        const pageNumberAttr = (entry.target as HTMLElement).dataset.pageNumber
-        const pageNumber = Number(pageNumberAttr)
-
-        if (!pageNumber) {
-          continue
-        }
-
-        if (entry.isIntersecting) {
-          pagesToQueue.push(pageNumber)
-          visiblePages.push(pageNumber)
-        }
-      }
-
-      if (visiblePages.length) {
-        const nextPage = Math.min(...visiblePages)
-
-        if (nextPage !== currentPage.value) {
-          currentPage.value = nextPage
-          syncVirtualWindow(nextPage)
-        }
-      }
-
-      queuePages(pagesToQueue.flatMap((page) => [page - 1, page, page + 1]))
-    },
-    {
-      root: null,
-      threshold: [0.2, 0.5, 0.8],
-    },
-  )
-
-  for (const pageNumber of pageNumbers.value) {
-    const element = pageElements.get(pageNumber)
-
-    if (element) {
-      intersectionObserver.observe(element)
-    }
-  }
+  return clamp(width / basePageWidth, minScale.value, maxScale.value);
 }
 
 async function renderPage(
@@ -272,92 +287,95 @@ async function renderPage(
   token: number,
 ): Promise<void> {
   if (!pdfDocument) {
-    return
+    return;
   }
 
-  const canvas = canvasElements.get(pageNumber)
+  const canvas = canvasElements.get(pageNumber);
 
   if (!canvas) {
-    return
+    return;
   }
-  if (renderedScale.get(pageNumber) === targetScale && renderedPages.has(pageNumber)) {
-    return
+  if (
+    renderedScale.get(pageNumber) === targetScale &&
+    renderedPages.has(pageNumber)
+  ) {
+    return;
   }
 
-  const page = await pdfDocument.getPage(pageNumber)
+  const page = await pdfDocument.getPage(pageNumber);
 
   if (token !== renderToken) {
-    return
+    return;
   }
 
-  const viewport = page.getViewport({ scale: targetScale })
-  const dpr = window.devicePixelRatio || 1
-  const canvasContext = canvas.getContext('2d')
+  const viewport = page.getViewport({ scale: targetScale });
+  const dpr = window.devicePixelRatio || 1;
+  const canvasContext = canvas.getContext("2d");
 
   if (!canvasContext) {
-    return
+    return;
   }
 
-  const previousTask = renderTasks.get(pageNumber)
+  const previousTask = renderTasks.get(pageNumber);
 
   if (previousTask) {
-    previousTask.cancel()
+    previousTask.cancel();
     try {
-      await previousTask.promise
+      await previousTask.promise;
     } catch {
       // Expected when task is canceled due to rerender.
     }
   }
 
-  canvas.width = Math.floor(viewport.width * dpr)
-  canvas.height = Math.floor(viewport.height * dpr)
-  canvas.style.width = `${viewport.width}px`
-  canvas.style.height = `${viewport.height}px`
+  canvas.width = Math.floor(viewport.width * dpr);
+  canvas.height = Math.floor(viewport.height * dpr);
+  canvas.style.width = `${viewport.width}px`;
+  canvas.style.height = `${viewport.height}px`;
 
   const nextTask = page.render({
     canvasContext,
     viewport,
     transform: dpr === 1 ? undefined : [dpr, 0, 0, dpr, 0, 0],
-  })
+  });
 
-  renderTasks.set(pageNumber, nextTask)
+  renderTasks.set(pageNumber, nextTask);
 
   try {
-    await nextTask.promise
+    await nextTask.promise;
   } catch (error: unknown) {
     if (
-      typeof error === 'object' &&
+      typeof error === "object" &&
       error !== null &&
-      'name' in error &&
-      (error as { name?: string }).name === 'RenderingCancelledException'
+      "name" in error &&
+      (error as { name?: string }).name === "RenderingCancelledException"
     ) {
-      return
+      return;
     }
-    throw error
+    throw error;
   } finally {
     if (renderTasks.get(pageNumber) === nextTask) {
-      renderTasks.delete(pageNumber)
+      renderTasks.delete(pageNumber);
     }
   }
 
   if (token === renderToken) {
-    renderedPages.add(pageNumber)
-    renderedScale.set(pageNumber, targetScale)
+    renderedPages.add(pageNumber);
+    renderedScale.set(pageNumber, targetScale);
   }
 }
 
 async function cancelAllRenderTasks(): Promise<void> {
-  const tasks = Array.from(renderTasks.values())
+  const tasks = Array.from(renderTasks.values());
 
-  renderTasks.clear()
+  renderTasks.clear();
 
   for (const task of tasks) {
-    task.cancel()
+    task.cancel();
   }
 
   for (const task of tasks) {
     try {
-      await task.promise
+      await task.promise;
     } catch {
       // Expected when task is canceled due to rerender/unmount.
     }
@@ -372,10 +390,10 @@ function queuePages(pages: number[]): void {
       currentVirtualPages.value.has(pageNumber) &&
       !renderedPages.has(pageNumber)
     ) {
-      queuedPages.add(pageNumber)
+      queuedPages.add(pageNumber);
     }
   }
-  void processRenderQueue()
+  void processRenderQueue();
 }
 
 async function processRenderQueue(): Promise<void> {
@@ -384,412 +402,413 @@ async function processRenderQueue(): Promise<void> {
     activeRenders.value < maxConcurrentRenders.value &&
     renderToken > 0
   ) {
-    const nextPage = queuedPages.values().next().value as number | undefined
+    const nextPage = queuedPages.values().next().value as number | undefined;
 
     if (!nextPage) {
-      return
+      return;
     }
     if (!currentVirtualPages.value.has(nextPage)) {
-      queuedPages.delete(nextPage)
-      continue
+      queuedPages.delete(nextPage);
+      continue;
     }
 
-    queuedPages.delete(nextPage)
-    activeRenders.value += 1
+    queuedPages.delete(nextPage);
+    activeRenders.value += 1;
 
     void renderPage(nextPage, scale.value, renderToken)
       .catch((error) => {
-        console.error('[PdfViewer] page render error', error)
+        console.error("[PdfViewer] page render error", error);
       })
       .finally(() => {
-        activeRenders.value -= 1
-        void processRenderQueue()
-      })
+        activeRenders.value -= 1;
+        void processRenderQueue();
+      });
   }
 }
 
 function primeVisiblePages(centerPage: number): void {
-  const radius = virtualWindowSize.value
+  const radius = virtualWindowSize.value;
   const nearby = Array.from(
     { length: radius * 2 + 1 },
     (_, i) => centerPage - radius + i,
-  )
+  );
 
-  queuePages(nearby)
+  queuePages(nearby);
 }
 
 function clearPageCanvas(pageNumber: number): void {
-  const canvas = canvasElements.get(pageNumber)
+  const canvas = canvasElements.get(pageNumber);
 
   if (!canvas) {
-    return
+    return;
   }
 
-  canvas.width = 0
-  canvas.height = 0
-  canvas.style.width = ''
-  canvas.style.height = ''
+  canvas.width = 0;
+  canvas.height = 0;
+  canvas.style.width = "";
+  canvas.style.height = "";
 }
 
 function syncVirtualWindow(centerPage: number): void {
-  const radius = virtualWindowSize.value
-  const nextVirtualPages = new Set<number>()
+  const radius = virtualWindowSize.value;
+  const nextVirtualPages = new Set<number>();
 
   for (
     let page = Math.max(1, centerPage - radius);
     page <= Math.min(totalPages.value, centerPage + radius);
     page += 1
   ) {
-    nextVirtualPages.add(page)
+    nextVirtualPages.add(page);
   }
 
-  currentVirtualPages.value = nextVirtualPages
+  currentVirtualPages.value = nextVirtualPages;
 
   for (const page of Array.from(queuedPages)) {
     if (!nextVirtualPages.has(page)) {
-      queuedPages.delete(page)
+      queuedPages.delete(page);
     }
   }
 
   for (const [page, task] of renderTasks.entries()) {
     if (!nextVirtualPages.has(page)) {
-      task.cancel()
-      renderTasks.delete(page)
+      task.cancel();
+      renderTasks.delete(page);
     }
   }
 
   for (const page of Array.from(renderedPages)) {
     if (!nextVirtualPages.has(page)) {
-      clearPageCanvas(page)
-      renderedPages.delete(page)
-      renderedScale.delete(page)
+      clearPageCanvas(page);
+      renderedPages.delete(page);
+      renderedScale.delete(page);
     }
   }
 
-  primeVisiblePages(centerPage)
+  primeVisiblePages(centerPage);
 }
 
 function updateCurrentPageFromViewport(): void {
-  if (!pageElements.size) {
-    return
+  if (!totalPages.value || !scrollContainerRef.value) {
+    return;
   }
 
-  const viewportAnchor = 140
-  let resolvedPage = currentPage.value || 1
-  let bestDistance = Number.POSITIVE_INFINITY
-
-  for (const pageNumber of pageNumbers.value) {
-    const pageEl = pageElements.get(pageNumber)
-
-    if (!pageEl) {
-      continue
-    }
-
-    const top = pageEl.getBoundingClientRect().top
-    const distance = Math.abs(top - viewportAnchor)
-
-    if (distance < bestDistance) {
-      bestDistance = distance
-      resolvedPage = pageNumber
-    }
-  }
-
-  currentPage.value = resolvedPage
+  const viewportAnchor = 140;
+  const containerTop = scrollContainerRef.value.getBoundingClientRect().top;
+  const offsetInContainer = Math.max(0, viewportAnchor - containerTop);
+  const pageSpan = Math.max(estimatedPageHeight.value + pageGapPx.value, 1);
+  const resolvedPage = clamp(
+    Math.floor(offsetInContainer / pageSpan) + 1,
+    1,
+    totalPages.value || 1,
+  );
+  currentPage.value = resolvedPage;
 }
 
 async function setScale(nextScale: number, fitWidth: boolean): Promise<void> {
-  isFitWidth.value = fitWidth
-  scale.value = clamp(nextScale, minScale.value, maxScale.value)
-  renderToken += 1
-  await cancelAllRenderTasks()
-  renderedPages.clear()
-  renderedScale.clear()
-  queuedPages.clear()
-  syncVirtualWindow(currentPage.value)
+  isFitWidth.value = fitWidth;
+  scale.value = clamp(nextScale, minScale.value, maxScale.value);
+  renderToken += 1;
+  await cancelAllRenderTasks();
+  renderedPages.clear();
+  renderedScale.clear();
+  queuedPages.clear();
+  syncVirtualWindow(currentPage.value);
 }
 
 async function fitToWidth(): Promise<void> {
-  const fitScale = await calculateFitScale()
+  const fitScale = await calculateFitScale();
 
-  await setScale(fitScale, true)
+  await setScale(fitScale, true);
 }
 
 async function loadPdf(): Promise<void> {
-  actionMessage.value = ''
-  errorMessage.value = ''
-  isLoading.value = true
+  actionMessage.value = "";
+  errorMessage.value = "";
+  isLoading.value = true;
 
-  renderToken += 1
-  await cancelAllRenderTasks()
-  intersectionObserver?.disconnect()
+  renderToken += 1;
+  await cancelAllRenderTasks();
 
   if (currentLoadTask) {
-    currentLoadTask.destroy()
-    currentLoadTask = null
+    currentLoadTask.destroy();
+    currentLoadTask = null;
   }
 
   if (pdfDocument) {
-    await pdfDocument.destroy()
-    pdfDocument = null
+    await pdfDocument.destroy();
+    pdfDocument = null;
   }
 
-  totalPages.value = 0
-  currentPage.value = clamp(props.initialPage, 1, totalPages.value || 1)
-  basePageHeight.value = 0
-  pageElements.clear()
-  canvasElements.clear()
-  renderedPages.clear()
-  renderedScale.clear()
-  queuedPages.clear()
-  currentVirtualPages.value = new Set()
+  totalPages.value = 0;
+  currentPage.value = clamp(props.initialPage, 1, totalPages.value || 1);
+  basePageHeight.value = 0;
+  pageElements.clear();
+  canvasElements.clear();
+  renderedPages.clear();
+  renderedScale.clear();
+  queuedPages.clear();
+  currentVirtualPages.value = new Set();
 
   try {
-    const pdfLib = await ensurePdfjs()
+    const pdfLib = await ensurePdfjs();
 
     currentLoadTask = pdfLib.getDocument({
       url: props.src,
       withCredentials: props.withCredentials,
-    })
-    const loadedDocument = await currentLoadTask.promise
+    });
+    const loadedDocument = await currentLoadTask.promise;
 
-    pdfDocument = loadedDocument
-    totalPages.value = loadedDocument.numPages
+    pdfDocument = loadedDocument;
+    totalPages.value = loadedDocument.numPages;
 
-    const firstPage = await loadedDocument.getPage(1)
-    const firstViewport = firstPage.getViewport({ scale: 1 })
+    const firstPage = await loadedDocument.getPage(1);
+    const firstViewport = firstPage.getViewport({ scale: 1 });
 
-    basePageWidth = firstViewport.width
-    basePageHeight.value = firstViewport.height
+    basePageWidth = firstViewport.width;
+    basePageHeight.value = firstViewport.height;
 
-    await nextTick()
+    await nextTick();
+    updatePageGap();
 
     if (props.fitToWidth) {
-      scale.value = await calculateFitScale()
-      isFitWidth.value = true
+      scale.value = await calculateFitScale();
+      isFitWidth.value = true;
     } else {
-      scale.value = clamp(props.initialScale, minScale.value, maxScale.value)
-      isFitWidth.value = false
+      scale.value = clamp(props.initialScale, minScale.value, maxScale.value);
+      isFitWidth.value = false;
     }
 
-    currentPage.value = clamp(props.initialPage, 1, totalPages.value || 1)
+    currentPage.value = clamp(props.initialPage, 1, totalPages.value || 1);
 
-    renderToken += 1
-    syncVirtualWindow(currentPage.value)
-    await nextTick()
-    setupPageObserver()
+    renderToken += 1;
+    syncVirtualWindow(currentPage.value);
   } catch (error) {
-    errorMessage.value = 'Unable to load this PDF right now.'
-    emit('load-error', error)
-    console.error('[PdfViewer] load error', error)
+    errorMessage.value = "Unable to load this PDF right now.";
+    emit("load-error", error);
+    console.error("[PdfViewer] load error", error);
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
 }
 
 async function zoomIn(): Promise<void> {
-  await setScale(scale.value + zoomStep.value, false)
+  await setScale(scale.value + zoomStep.value, false);
 }
 
 async function zoomOut(): Promise<void> {
-  await setScale(scale.value - zoomStep.value, false)
+  await setScale(scale.value - zoomStep.value, false);
 }
 
-function goToPage(pageNumber: number): void {
+async function goToPage(pageNumber: number): Promise<void> {
   if (!totalPages.value) {
-    return
+    return;
   }
 
-  const clampedPage = clamp(pageNumber, 1, totalPages.value)
+  const clampedPage = clamp(pageNumber, 1, totalPages.value);
 
-  syncVirtualWindow(clampedPage)
-  const element = pageElements.get(clampedPage)
+  syncVirtualWindow(clampedPage);
+  await nextTick();
 
-  if (!element) {
-    return
-  }
-
-  element.scrollIntoView({ behavior: 'auto', block: 'start' })
-  currentPage.value = clampedPage
-  updateCurrentPageFromViewport()
+  const element = pageElements.get(clampedPage);
+  element?.scrollIntoView({ behavior: "auto", block: "start" });
+  currentPage.value = clampedPage;
+  updateCurrentPageFromViewport();
 }
 
-function goToPrevPage(): void {
+async function goToPrevPage(): Promise<void> {
   if (!canGoPrev.value) {
-    return
+    return;
   }
 
-  goToPage(currentPage.value - 1)
+  await goToPage(currentPage.value - 1);
 }
 
-function goToNextPage(): void {
+async function goToNextPage(): Promise<void> {
   if (!canGoNext.value) {
-    return
+    return;
   }
 
-  goToPage(currentPage.value + 1)
+  await goToPage(currentPage.value + 1);
 }
 
-function goToFirstPage(): void {
-  goToPage(1)
+async function goToFirstPage(): Promise<void> {
+  await goToPage(1);
 }
 
-function goToLastPage(): void {
-  goToPage(totalPages.value || 1)
+async function goToLastPage(): Promise<void> {
+  await goToPage(totalPages.value || 1);
 }
 
 async function toBlobUrl(): Promise<{ blobUrl: string; filename: string }> {
-  const response = await fetch(props.src, { credentials: props.withCredentials ? 'include' : 'same-origin' })
+  let blob: Blob;
 
-  if (!response.ok) {
-    throw new Error(`Failed PDF fetch: ${response.status}`)
+  if (pdfDocument) {
+    const bytes = await pdfDocument.getData();
+    const copiedBytes = Uint8Array.from(bytes);
+
+    blob = new Blob([copiedBytes], { type: "application/pdf" });
+  } else {
+    const response = await fetch(props.src, {
+      credentials: props.withCredentials ? "include" : "same-origin",
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed PDF fetch: ${response.status}`);
+    }
+
+    blob = await response.blob();
   }
 
-  const blob = await response.blob()
-  const blobUrl = URL.createObjectURL(blob)
-  const filename = filenameFromSrc(props.src)
+  const blobUrl = URL.createObjectURL(blob);
+  const filename = filenameFromSrc(props.src);
 
-  return { blobUrl, filename }
+  return { blobUrl, filename };
 }
 
 async function downloadPdf(): Promise<void> {
-  actionMessage.value = ''
+  actionMessage.value = "";
 
   try {
-    const { blobUrl, filename } = await toBlobUrl()
-    const anchor = document.createElement('a')
+    const { blobUrl, filename } = await toBlobUrl();
+    const anchor = document.createElement("a");
 
-    anchor.href = blobUrl
-    anchor.download = filename
-    anchor.rel = 'noopener'
-    anchor.style.display = 'none'
-    document.body.appendChild(anchor)
-    anchor.click()
-    anchor.remove()
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
+    anchor.href = blobUrl;
+    anchor.download = filename;
+    anchor.rel = "noopener";
+    anchor.style.display = "none";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
   } catch (error) {
-    console.error('[PdfViewer] download error', error)
-    actionMessage.value = 'Unable to download this PDF right now.'
-    emit('action-error', error)
+    console.error("[PdfViewer] download error", error);
+    actionMessage.value = "Unable to download this PDF right now.";
+    emit("action-error", error);
   }
 }
 
 async function printPdf(): Promise<void> {
-  actionMessage.value = ''
+  actionMessage.value = "";
 
   try {
-    const { blobUrl } = await toBlobUrl()
-    const existingFrame = document.getElementById('lpv-print-frame')
+    const { blobUrl } = await toBlobUrl();
+    const existingFrame = document.getElementById("lpv-print-frame");
 
     if (existingFrame) {
-      existingFrame.remove()
+      existingFrame.remove();
     }
 
-    const printFrame = document.createElement('iframe')
+    const printFrame = document.createElement("iframe");
 
-    printFrame.id = 'lpv-print-frame'
-    printFrame.style.position = 'fixed'
-    printFrame.style.width = '0'
-    printFrame.style.height = '0'
-    printFrame.style.border = '0'
-    printFrame.style.opacity = '0'
+    printFrame.id = "lpv-print-frame";
+    printFrame.style.position = "fixed";
+    printFrame.style.width = "0";
+    printFrame.style.height = "0";
+    printFrame.style.border = "0";
+    printFrame.style.opacity = "0";
 
     printFrame.onload = () => {
-      const frameWindow = printFrame.contentWindow
+      const frameWindow = printFrame.contentWindow;
 
       if (!frameWindow) {
-        actionMessage.value = 'Unable to open print preview right now.'
-        emit('action-error', new Error('Unable to open print preview.'))
-        URL.revokeObjectURL(blobUrl)
-        printFrame.remove()
-        return
+        actionMessage.value = "Unable to open print preview right now.";
+        emit("action-error", new Error("Unable to open print preview."));
+        URL.revokeObjectURL(blobUrl);
+        printFrame.remove();
+        return;
       }
 
       setTimeout(() => {
-        frameWindow.focus()
-        frameWindow.print()
-      }, 150)
+        frameWindow.focus();
+        frameWindow.print();
+      }, 150);
 
       const cleanup = () => {
-        URL.revokeObjectURL(blobUrl)
-        printFrame.remove()
-      }
+        URL.revokeObjectURL(blobUrl);
+        printFrame.remove();
+      };
 
-      setTimeout(cleanup, 2000)
-    }
+      setTimeout(cleanup, 2000);
+    };
 
-    printFrame.src = blobUrl
-    document.body.appendChild(printFrame)
+    printFrame.src = blobUrl;
+    document.body.appendChild(printFrame);
   } catch (error) {
-    console.error('[PdfViewer] print error', error)
-    actionMessage.value = 'Unable to open print preview right now.'
-    emit('action-error', error)
+    console.error("[PdfViewer] print error", error);
+    actionMessage.value = "Unable to open print preview right now.";
+    emit("action-error", error);
   }
 }
 
 async function zoomToPercent(percent: number): Promise<void> {
-  await setScale(percent / 100, false)
+  await setScale(percent / 100, false);
 }
 
 async function toggleFullscreen(): Promise<void> {
-  const element = scrollContainerRef.value
+  const element = scrollContainerRef.value;
   if (!element) {
-    return
+    return;
   }
 
   if (document.fullscreenElement) {
-    await document.exitFullscreen()
+    await document.exitFullscreen();
   } else {
-    await element.requestFullscreen()
+    await element.requestFullscreen();
   }
 }
 
 watch(
   () => props.src,
   async () => {
-    await loadPdf()
-    updateCurrentPageFromViewport()
+    await loadPdf();
+    updateCurrentPageFromViewport();
   },
   { immediate: true },
-)
+);
 
 watch(
   () => props.fitToWidth,
   (value) => {
-    isFitWidth.value = value
+    isFitWidth.value = value;
   },
-)
+);
 
 watch(currentPage, (page) => {
   if (totalPages.value > 0) {
-    syncVirtualWindow(page)
-    emit('page-change', page)
+    if (!currentVirtualPages.value.has(page)) {
+      syncVirtualWindow(page);
+    }
+    emit("page-change", page);
   }
-})
+});
 
 onMounted(() => {
-  setupResizeObserver()
-  setupFullscreenListener()
-  setupScrollListeners()
-})
+  void nextTick(() => {
+    updatePageGap();
+  });
+
+  setupResizeObserver();
+  setupFullscreenListener();
+  setupScrollListeners();
+});
 
 onBeforeUnmount(async () => {
-  renderToken += 1
-  await cancelAllRenderTasks()
-  intersectionObserver?.disconnect()
+  renderToken += 1;
+  await cancelAllRenderTasks();
 
   if (currentLoadTask) {
-    currentLoadTask.destroy()
-    currentLoadTask = null
+    currentLoadTask.destroy();
+    currentLoadTask = null;
   }
 
   if (pdfDocument) {
-    await pdfDocument.destroy()
-    pdfDocument = null
+    await pdfDocument.destroy();
+    pdfDocument = null;
   }
 
-  cleanupResizeObserver()
-  cleanupListeners()
-})
+  cleanupResizeObserver();
+  cleanupListeners();
+});
 </script>
 
 <template>
@@ -819,23 +838,43 @@ onBeforeUnmount(async () => {
       />
 
       <p v-if="actionMessage" class="lpv-message">{{ actionMessage }}</p>
-      <p v-if="errorMessage" class="lpv-message lpv-message-error">{{ errorMessage }}</p>
-      <div ref="scrollContainerRef" aria-live="polite" class="lpv-scroll" role="region">
+      <p v-if="errorMessage" class="lpv-message lpv-message-error">
+        {{ errorMessage }}
+      </p>
+      <div
+        ref="scrollContainerRef"
+        aria-live="polite"
+        class="lpv-scroll"
+        role="region"
+      >
         <div v-if="isLoading" class="lpv-loading-overlay" aria-live="polite">
           <span aria-hidden="true" class="lpv-spinner"></span>
           Loading PDF...
         </div>
-        <div class="lpv-pages">
+        <div ref="pagesContainerRef" class="lpv-pages">
           <div
-            v-for="pageNumber in pageNumbers"
+            aria-hidden="true"
+            class="lpv-spacer"
+            :style="{ height: `${topSpacerHeight}px` }"
+          ></div>
+          <div
+            v-for="pageNumber in virtualPageNumbers"
             :key="pageNumber"
             :ref="(el) => setPageRef(pageNumber, el)"
             class="lpv-page"
             :data-page-number="pageNumber"
             :style="{ minHeight: `${estimatedPageHeight}px` }"
           >
-            <canvas :ref="(el) => setCanvasRef(pageNumber, el)" class="lpv-canvas" />
+            <canvas
+              :ref="(el) => setCanvasRef(pageNumber, el)"
+              class="lpv-canvas"
+            />
           </div>
+          <div
+            aria-hidden="true"
+            class="lpv-spacer"
+            :style="{ height: `${bottomSpacerHeight}px` }"
+          ></div>
         </div>
       </div>
     </section>

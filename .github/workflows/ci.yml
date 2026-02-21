@@ -13,17 +13,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: "npm"
       - name: Install dependencies
         run: npm install
       - name: Lint
         run: npm run lint
+      - name: Format Check
+        run: npm run format:check
       - name: Typecheck
         run: npm run typecheck
       - name: Build
         run: npm run build
       - name: Test
         run: npm test
+      - name: Pack Check
+        run: npm run pack:check
       - name: Install playground deps
         run: npm install
         working-directory: playground
@@ -33,6 +37,5 @@ jobs:
       - name: Install Nuxt playground deps
         run: npm install
         working-directory: playground-nuxt
-      - name: Build Nuxt playground
-        run: npm run build
-        working-directory: playground-nuxt
+      - name: Smoke Test (Vue + Nuxt playground builds)
+        run: npm run smoke

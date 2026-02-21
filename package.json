@@ -19,21 +19,23 @@
     "pdfjs",
     "viewer",
     "pdf-viewer",
-    "pdf-viewer-vue"
+    "pdf-viewer-vue",
+    "vue-pdf-viewer",
+    "nuxt-pdf-viewer",
+    "vue3-pdf-viewer"
   ],
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "import": "./dist/index.mjs"
     },
     "./style.css": "./dist/style.css",
     "./nuxt": {
       "types": "./dist/nuxt/module.d.ts",
-      "import": "./dist/nuxt/module.mjs"
+      "import": "./dist/nuxt/module.js"
     }
   },
   "files": [
@@ -46,18 +48,33 @@
     "**/*.css"
   ],
   "scripts": {
-    "build": "npm run build:lib && npm run build:nuxt",
+    "build": "npm run build:lib && npm run build:types && npm run build:nuxt",
     "build:lib": "vite build",
+    "build:types": "vue-tsc -p tsconfig.build.json",
     "build:nuxt": "tsup src/nuxt/module.ts --format esm --dts --out-dir dist/nuxt --external nuxt,@nuxt/kit",
     "dev": "vite",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
     "typecheck": "vue-tsc --noEmit",
     "release": "bash scripts/release.sh",
     "publish:check": "bash scripts/publish-check.sh",
-    "prepublishOnly": "npm run lint && npm run typecheck && npm run build",
+    "pack:check": "node scripts/pack-check.mjs",
+    "smoke": "npm -C playground run build && npm -C playground-nuxt run build",
+    "prepare": "husky",
+    "prepublishOnly": "npm run lint && npm run format:check && npm run typecheck && npm run build && npm run pack:check",
     "test": "vitest run",
     "test:watch": "vitest"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,vue}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "peerDependencies": {
     "@nuxt/kit": "^4.0.0",
@@ -88,6 +105,9 @@
     "globals": "^15.9.0",
     "jsdom": "^24.0.0",
     "nuxt": "^4.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
     "tsup": "^8.0.1",
     "typescript": "^5.5.4",
     "vite": "^5.4.0",

@@ -78,6 +78,11 @@
   gap: 1rem;
 }
 
+.lpv-spacer {
+  width: 100%;
+  pointer-events: none;
+}
+
 .lpv-page {
   position: relative;
   display: flex;
@@ -93,7 +98,6 @@
 .lpv-fit .lpv-scroll {
   overflow-x: hidden;
 }
-
 
 .lpv-page-loader {
   position: absolute;

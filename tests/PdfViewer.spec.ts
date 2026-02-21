@@ -1,8 +1,8 @@
-import { describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-import PdfViewer from '../src/components/PdfViewer.vue'
+import { describe, expect, it, vi } from "vitest";
+import { mount } from "@vue/test-utils";
+import PdfViewer from "../src/components/PdfViewer.vue";
 
-vi.mock('pdfjs-dist', () => {
+vi.mock("pdfjs-dist", () => {
   return {
     getDocument: () => ({
       promise: Promise.resolve({
@@ -17,24 +17,24 @@ vi.mock('pdfjs-dist', () => {
         destroy: async () => undefined,
       }),
     }),
-    GlobalWorkerOptions: { workerSrc: '' },
-  }
-})
+    GlobalWorkerOptions: { workerSrc: "" },
+  };
+});
 
-vi.mock('pdfjs-dist/build/pdf.worker.min.mjs?url', () => ({
-  default: 'worker.js',
-}))
+vi.mock("pdfjs-dist/build/pdf.worker.min.mjs?url", () => ({
+  default: "worker.js",
+}));
 
-describe('PdfViewer', () => {
-  it('renders and initializes without throwing', async () => {
+describe("PdfViewer", () => {
+  it("renders and initializes without throwing", async () => {
     const wrapper = mount(PdfViewer, {
-      props: { src: 'https://example.com/file.pdf' },
-    })
+      props: { src: "https://example.com/file.pdf" },
+    });
 
-    await Promise.resolve()
-    await wrapper.vm.$nextTick()
+    await Promise.resolve();
+    await wrapper.vm.$nextTick();
 
-    expect(wrapper.find('.lpv-scroll').exists()).toBe(true)
-    expect(wrapper.find('.lpv-toolbar').exists()).toBe(true)
-  })
-})
+    expect(wrapper.find(".lpv-scroll").exists()).toBe(true);
+    expect(wrapper.find(".lpv-toolbar").exists()).toBe(true);
+  });
+});

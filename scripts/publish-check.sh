@@ -4,4 +4,5 @@ set -euo pipefail
 npm run lint
 npm run typecheck
 npm run build
+npm run pack:check
 npm publish --dry-run

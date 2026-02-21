@@ -1,10 +1,12 @@
 # vue-pdf-viewer-core
 
-![CI](https://github.com/StirStudios/vue-pdf-viewer-core/actions/workflows/ci.yml/badge.svg)
-![Playground](https://github.com/StirStudios/vue-pdf-viewer-core/actions/workflows/deploy-playground.yml/badge.svg)
-![Nuxt Playground](https://github.com/StirStudios/vue-pdf-viewer-core/actions/workflows/deploy-playground-nuxt.yml/badge.svg)
+[![CI](https://github.com/StirStudios/vue-pdf-viewer-core/actions/workflows/ci.yml/badge.svg)](https://github.com/StirStudios/vue-pdf-viewer-core/actions/workflows/ci.yml)
+[![Playground Deploy](https://github.com/StirStudios/vue-pdf-viewer-core/actions/workflows/deploy-playground.yml/badge.svg)](https://stirstudios.github.io/vue-pdf-viewer-core/playground/)
+[![Nuxt Playground Deploy](https://github.com/StirStudios/vue-pdf-viewer-core/actions/workflows/deploy-playground-nuxt.yml/badge.svg)](https://stirstudios.github.io/vue-pdf-viewer-core/nuxt/)
 
-Fast, lightweight PDF viewer for Vue 3 and Nuxt 4 powered by pdf.js. Built for easy setup, strong performance, and clean TypeScript.
+Fast, lightweight PDF viewer component for Vue 3 and Nuxt 4 powered by pdf.js. Built for zero-config setup, strong performance on large PDFs, and clean TypeScript support.
+
+Use this package when you need a Vue PDF viewer with toolbar controls, virtualization, zoom, pagination, download, print, and Nuxt compatibility.
 
 ## Features
 
@@ -21,14 +23,14 @@ Fast, lightweight PDF viewer for Vue 3 and Nuxt 4 powered by pdf.js. Built for e
 npm i vue-pdf-viewer-core pdfjs-dist
 ```
 
-## Vue 3 Usage
+## 60-Second Quick Start (Vue 3)
 
 ```vue
 <script setup lang="ts">
-import { PdfViewer } from 'vue-pdf-viewer-core'
-import 'vue-pdf-viewer-core/style.css'
+import { PdfViewer } from "vue-pdf-viewer-core";
+import "vue-pdf-viewer-core/style.css";
 
-const pdfUrl = 'https://example.com/my.pdf'
+const pdfUrl = "https://example.com/my.pdf";
 </script>
 
 <template>
@@ -36,22 +38,22 @@ const pdfUrl = 'https://example.com/my.pdf'
 </template>
 ```
 
-## Nuxt 4 Usage
+## 60-Second Quick Start (Nuxt 4)
 
-1) Add the module:
+1. Add the module:
 
 ```ts
 // nuxt.config.ts
 export default defineNuxtConfig({
-  modules: ['vue-pdf-viewer-core/nuxt'],
-})
+  modules: ["vue-pdf-viewer-core/nuxt"],
+});
 ```
 
-2) Use the component with client-only rendering:
+2. Use the component with client-only rendering:
 
 ```vue
 <script setup lang="ts">
-const pdfUrl = 'https://example.com/my.pdf'
+const pdfUrl = "https://example.com/my.pdf";
 </script>
 
 <template>
@@ -60,6 +62,13 @@ const pdfUrl = 'https://example.com/my.pdf'
   </ClientOnly>
 </template>
 ```
+
+## Why This Library
+
+- Works out of the box in Vue 3 and Nuxt 4.
+- Uses pdf.js with a built-in worker path (no manual worker wiring needed).
+- Keeps rendering fast on large documents with virtual windowing.
+- Ships typed components for TypeScript projects.
 
 ## Props
 
@@ -113,6 +122,18 @@ npm -C playground-nuxt run dev
 
 - Vite playground: https://stirstudios.github.io/vue-pdf-viewer-core/playground/
 - Nuxt playground: https://stirstudios.github.io/vue-pdf-viewer-core/nuxt/
+
+## Troubleshooting (Nuxt / SSR)
+
+- If you see `window is not defined`, render the viewer in `<ClientOnly>`.
+- If styles are missing, ensure `import 'vue-pdf-viewer-core/style.css'` is loaded.
+- If PDFs require auth cookies, pass `:with-credentials="true"`.
+
+## Project Docs
+
+- Contributing: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
+- Code of Conduct: [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md)
+- Security: [`SECURITY.md`](./SECURITY.md)
 
 ## License
 
