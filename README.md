@@ -111,8 +111,8 @@ npm -C playground-nuxt run dev
 
 ### GitHub Pages URLs
 
-- Vite playground: `/vue-pdf-viewer-core/playground/`
-- Nuxt playground: `/vue-pdf-viewer-core/nuxt/`
+- Vite playground: https://stirstudios.github.io/vue-pdf-viewer-core/playground/
+- Nuxt playground: https://stirstudios.github.io/vue-pdf-viewer-core/nuxt/
 
 ## License
 
