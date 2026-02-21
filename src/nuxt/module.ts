@@ -13,7 +13,8 @@ export default defineNuxtModule({
 
     addComponent({
       name: "PdfViewer",
-      filePath: resolver.resolve("../components/PdfViewer.vue"),
+      export: "PdfViewer",
+      filePath: "vue-pdf-viewer-core",
     });
   },
 });
