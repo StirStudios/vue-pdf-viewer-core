@@ -19,29 +19,12 @@ Use this package when you need a Vue PDF viewer with toolbar controls, virtualiz
 
 ## Install
 
-### pnpm (preferred)
-
-```bash
-pnpm add vue-pdf-viewer-core pdfjs-dist
-```
-
-### npm
-
-```bash
-npm i vue-pdf-viewer-core pdfjs-dist
-```
-
-### yarn
-
-```bash
-yarn add vue-pdf-viewer-core pdfjs-dist
-```
-
-### bun
-
-```bash
-bun add vue-pdf-viewer-core pdfjs-dist
-```
+| Package Manager  | Command                                   |
+| ---------------- | ----------------------------------------- |
+| pnpm (preferred) | `pnpm add vue-pdf-viewer-core pdfjs-dist` |
+| npm              | `npm i vue-pdf-viewer-core pdfjs-dist`    |
+| yarn             | `yarn add vue-pdf-viewer-core pdfjs-dist` |
+| bun              | `bun add vue-pdf-viewer-core pdfjs-dist`  |
 
 ## 60-Second Quick Start (Vue 3)
 
