@@ -7,7 +7,7 @@
   "author": "Stir Studios",
   "repository": {
     "type": "git",
-    "url": "https://github.com/StirStudios/vue-pdf-viewer-core"
+    "url": "git+https://github.com/StirStudios/vue-pdf-viewer-core.git"
   },
   "homepage": "https://github.com/StirStudios/vue-pdf-viewer-core",
   "keywords": [
