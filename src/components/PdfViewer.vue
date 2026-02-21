@@ -153,14 +153,6 @@ function setCanvasRef(
   }
 
   canvasElements.set(pageNumber, element);
-
-  if (
-    totalPages.value > 0 &&
-    currentVirtualPages.value.has(pageNumber) &&
-    !renderedPages.has(pageNumber)
-  ) {
-    queuePages([pageNumber]);
-  }
 }
 
 function debounce<T extends (...args: never[]) => void>(
@@ -492,9 +484,7 @@ function syncVirtualWindow(centerPage: number): void {
     }
   }
 
-  void nextTick(() => {
-    primeVisiblePages(centerPage);
-  });
+  primeVisiblePages(centerPage);
 }
 
 function updateCurrentPageFromViewport(): void {
