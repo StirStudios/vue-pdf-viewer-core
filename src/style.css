@@ -29,6 +29,14 @@
   --lpv-content-bottom-gap: 0.75rem;
   --lpv-surface-shadow:
     0 0.05rem 0.2rem rgb(0 0 0 / 4%), 0 0.28rem 0.72rem rgb(0 0 0 / 6%);
+  --lpv-tooltip-bg: #fff;
+  --lpv-tooltip-text: #1f1f1f;
+  --lpv-tooltip-border: color-mix(
+    in oklab,
+    var(--lpv-border) 65%,
+    transparent 35%
+  );
+  --lpv-tooltip-shadow: 0 0.28rem 0.72rem rgb(0 0 0 / 10%);
   border-radius: var(--lpv-surface-radius);
 }
 
@@ -351,15 +359,14 @@
 .lpv-tooltip-panel {
   position: absolute;
   transform: translateX(-50%);
-  background: #fff;
-  color: #1f1f1f;
-  border: var(--lpv-border-width) solid
-    color-mix(in oklab, var(--lpv-border) 65%, transparent 35%);
+  background: var(--lpv-tooltip-bg);
+  color: var(--lpv-tooltip-text);
+  border: var(--lpv-border-width) solid var(--lpv-tooltip-border);
   padding: 0.4rem 0.6rem;
   border-radius: var(--lpv-overlay-radius);
   font-size: 0.8rem;
   white-space: nowrap;
-  box-shadow: 0 0.28rem 0.72rem rgb(0 0 0 / 10%);
+  box-shadow: var(--lpv-tooltip-shadow);
   z-index: 200;
   pointer-events: none;
 }
@@ -445,14 +452,22 @@
   --lpv-toolbar-text: #f5f5f5;
   --lpv-icon-color: #f5f5f5;
   --lpv-error: #fda29b;
+  --lpv-tooltip-bg: #161616;
+  --lpv-tooltip-text: #fff;
+  --lpv-tooltip-border: color-mix(
+    in oklab,
+    var(--lpv-border) 72%,
+    transparent 28%
+  );
+  --lpv-tooltip-shadow: 0 0.28rem 0.72rem rgb(0 0 0 / 22%);
 }
 
 :where(.lpv-root.lpv-theme-dark) .lpv-tooltip-panel,
 .dark :where(.lpv-root.lpv-theme-auto) .lpv-tooltip-panel {
-  background: #161616;
-  color: #fff;
-  border-color: color-mix(in oklab, var(--lpv-border) 72%, transparent 28%);
-  box-shadow: 0 0.28rem 0.72rem rgb(0 0 0 / 22%);
+  background: var(--lpv-tooltip-bg);
+  color: var(--lpv-tooltip-text);
+  border-color: var(--lpv-tooltip-border);
+  box-shadow: var(--lpv-tooltip-shadow);
 }
 
 :where(.lpv-root.lpv-theme-dark) .lpv-scroll-loader,

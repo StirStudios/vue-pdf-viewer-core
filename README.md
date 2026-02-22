@@ -145,6 +145,23 @@ Use `theme="auto"` (default) to follow your app-level `.dark` class, or override
   --lpv-panel: #e9e9e9;
   --lpv-border: #d1d1d1;
   --lpv-text: #1f1f1f;
+  --lpv-toolbar-text: #1f1f1f;
+  --lpv-icon-color: #1f1f1f;
+  --lpv-error: #b42318;
+
+  --lpv-surface-radius: 0.45rem;
+  --lpv-inline-gutter: 0.45rem;
+  --lpv-toolbar-top-gap: 0.25rem;
+  --lpv-toolbar-sticky-top: 0.5rem;
+
+  --lpv-tooltip-bg: #fff;
+  --lpv-tooltip-text: #1f1f1f;
+  --lpv-tooltip-border: color-mix(
+    in oklab,
+    var(--lpv-border) 65%,
+    transparent 35%
+  );
+  --lpv-tooltip-shadow: 0 0.28rem 0.72rem rgb(0 0 0 / 10%);
 }
 ```
 
