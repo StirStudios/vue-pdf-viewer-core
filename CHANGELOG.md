@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4
+
+- Fix single-page PDF layout by applying the viewer scroll min-height only while loading.
+- Clarify Nuxt usage docs for module setup and layer wrappers (`useAttrs`) to preserve core defaults.
+- Add regression coverage for Nuxt-layer wrapper forwarding behavior.
+
 ## 0.1.3
 
 - Fix modal canvas render race in `PdfViewer` by queueing pages until canvas refs mount.
