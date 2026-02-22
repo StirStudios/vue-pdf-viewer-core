@@ -68,7 +68,7 @@
   height: auto;
   overflow-x: auto;
   overflow-y: visible;
-  padding: 0.75rem;
+  padding: 0 0.75rem 0.75rem;
   background: var(--lpv-bg);
   position: relative;
 }
