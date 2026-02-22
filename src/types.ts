@@ -10,6 +10,7 @@ export interface PdfViewerProps {
   maxConcurrentRenders?: number;
   virtualWindowSize?: number;
   showToolbar?: boolean;
+  theme?: "auto" | "light" | "dark";
 }
 
 export interface PdfToolbarProps {

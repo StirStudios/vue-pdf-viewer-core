@@ -37,6 +37,18 @@ describe("PdfViewer", () => {
 
     expect(wrapper.find(".lpv-scroll").exists()).toBe(true);
     expect(wrapper.find(".lpv-toolbar").exists()).toBe(true);
+    expect(wrapper.find(".lpv-root").classes()).toContain("lpv-theme-auto");
+  });
+
+  it("applies explicit theme class from props", async () => {
+    const wrapper = mount(PdfViewer, {
+      props: { src: "https://example.com/file.pdf", theme: "dark" },
+    });
+
+    await Promise.resolve();
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find(".lpv-root").classes()).toContain("lpv-theme-dark");
   });
 
   it("preserves PdfViewer defaults when forwarded through a Nuxt-layer style attrs wrapper", async () => {

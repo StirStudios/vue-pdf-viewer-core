@@ -80,7 +80,7 @@ const pdfUrl = "https://example.com/my.pdf";
 </template>
 ```
 
-`fitToWidth`, `showToolbar`, and `withCredentials` already have defaults in `PdfViewer`, so you only need to pass them when overriding behavior.
+`fitToWidth`, `showToolbar`, `withCredentials`, and `theme` already have defaults in `PdfViewer`, so you only need to pass them when overriding behavior.
 
 If you wrap the viewer inside a Nuxt layer component, prefer forwarding `useAttrs()` (instead of re-declaring all props) so core defaults stay intact:
 
@@ -119,6 +119,7 @@ const attrs = useAttrs() as Partial<PdfViewerProps>;
 - `maxConcurrentRenders` (`2`)
 - `virtualWindowSize` (`2`)
 - `showToolbar` (`true`)
+- `theme` (`"auto"`) accepts `"auto" | "light" | "dark"`
 
 ## Events
 
@@ -128,7 +129,13 @@ const attrs = useAttrs() as Partial<PdfViewerProps>;
 
 ## Theming
 
-You can override CSS variables to match your app theme:
+Set theme mode directly via prop:
+
+```vue
+<PdfViewer :src="pdfUrl" theme="dark" />
+```
+
+Use `theme="auto"` (default) to follow your app-level `.dark` class, or override CSS variables to match your app theme:
 
 ```css
 :root {

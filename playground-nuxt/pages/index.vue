@@ -5,6 +5,7 @@ const sampleUrl =
   "https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf";
 const pdfUrl = ref(sampleUrl);
 const inputUrl = ref(sampleUrl);
+const mode = ref<"light" | "dark">("light");
 
 function applyUrl(): void {
   pdfUrl.value = inputUrl.value;
@@ -28,9 +29,35 @@ function applyUrl(): void {
       <button class="button" type="button" @click="applyUrl">Load PDF</button>
     </section>
 
-    <section class="viewer-card">
+    <section class="theme-controls">
+      <span class="theme-label">Mode</span>
+      <div class="theme-toggle" role="radiogroup" aria-label="Viewer theme">
+        <button
+          class="theme-option"
+          :class="{ active: mode === 'light' }"
+          type="button"
+          role="radio"
+          :aria-checked="mode === 'light'"
+          @click="mode = 'light'"
+        >
+          Light
+        </button>
+        <button
+          class="theme-option"
+          :class="{ active: mode === 'dark' }"
+          type="button"
+          role="radio"
+          :aria-checked="mode === 'dark'"
+          @click="mode = 'dark'"
+        >
+          Dark
+        </button>
+      </div>
+    </section>
+
+    <section class="viewer-card" :class="{ dark: mode === 'dark' }">
       <ClientOnly>
-        <PdfViewer :src="pdfUrl" />
+        <PdfViewer :src="pdfUrl" :theme="mode" />
       </ClientOnly>
     </section>
   </main>
@@ -94,5 +121,47 @@ function applyUrl(): void {
   padding: 1.5rem;
   border-radius: 1rem;
   box-shadow: 0 20px 45px rgb(0 0 0 / 10%);
+}
+
+.theme-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.theme-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  gap: 0.2rem;
+  padding: 0.2rem;
+  border-radius: 999rem;
+  border: 1px solid #d8d3cd;
+  background: #f2ece5;
+}
+
+.theme-option {
+  border: 0;
+  background: transparent;
+  color: #2e2e2e;
+  padding: 0.32rem 0.75rem;
+  border-radius: 999rem;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.theme-option.active {
+  background: #222;
+  color: #fff;
+}
+
+.viewer-card.dark {
+  background: #1b1e25;
+  box-shadow: 0 20px 45px rgb(0 0 0 / 28%);
 }
 </style>

@@ -12,7 +12,7 @@
 }
 
 .lpv {
-  background: var(--lpv-bg);
+  background: transparent;
   color: var(--lpv-text);
   position: relative;
   overflow: visible;
@@ -69,7 +69,7 @@
   overflow-x: auto;
   overflow-y: visible;
   padding: 0 0.75rem 0.75rem;
-  background: var(--lpv-bg);
+  background: transparent;
   position: relative;
 }
 
@@ -93,8 +93,12 @@
   display: flex;
   justify-content: center;
   padding: 0;
-  background: #fff;
-  box-shadow: 0 0.125rem 1rem rgb(0 0 0 / 10%);
+  background: transparent;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow:
+    0 0.05rem 0.2rem rgb(0 0 0 / 4%),
+    0 0.28rem 0.72rem rgb(0 0 0 / 6%);
   margin-inline: auto;
   min-width: 100%;
   width: fit-content;
@@ -146,9 +150,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.35rem;
-  background: var(--lpv-panel);
-  border-bottom: 0.0625rem solid var(--lpv-border);
+  gap: 0.12rem;
+  min-height: 2.35rem;
+  margin: 0.25rem 0.45rem 0;
+  padding: 0.12rem;
+  background: color-mix(in oklab, var(--lpv-panel) 92%, white 8%);
+  border: 0.0625rem solid
+    color-mix(in oklab, var(--lpv-border) 52%, transparent 48%);
+  border-radius: 0.5rem;
+  box-shadow:
+    0 0.05rem 0.2rem rgb(0 0 0 / 4%),
+    0 0.28rem 0.72rem rgb(0 0 0 / 6%);
+  backdrop-filter: saturate(1.05) blur(0.35rem);
   color: var(--lpv-toolbar-text);
 }
 
@@ -157,7 +170,7 @@
   align-items: center;
   overflow-x: auto;
   overflow-y: visible;
-  padding: 0.25rem 0.45rem;
+  padding: 0.1rem 0.24rem;
   scrollbar-width: none;
   max-width: 40%;
 }
@@ -169,8 +182,9 @@
 .lpv-group {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.2rem;
   flex-wrap: nowrap;
+  min-height: 1.95rem;
 }
 
 .lpv-group-nav,
@@ -178,31 +192,51 @@
   min-width: 12rem;
 }
 
+.lpv-group-zoom {
+  border-left: 0.0625rem solid
+    color-mix(in oklab, var(--lpv-border) 65%, transparent 35%);
+  border-right: 0.0625rem solid
+    color-mix(in oklab, var(--lpv-border) 65%, transparent 35%);
+  padding: 0 0.2rem;
+}
+
 .lpv-group-actions {
   justify-content: flex-end;
-  padding-right: 0.45rem;
+  padding-right: 0.2rem;
 }
 
 .lpv-icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.875rem;
-  min-height: 1.875rem;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
   border-radius: 0.4rem;
-  padding: 0.3rem;
+  padding: 0.22rem;
   font-size: 1rem;
   line-height: 1;
   cursor: pointer;
-  border: 0;
+  border: 0.0625rem solid transparent;
   background: transparent;
   color: var(--lpv-icon-color);
-  transition: background-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 }
 
-.lpv-icon-btn:hover:not(:disabled),
+.lpv-icon-btn:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--lpv-panel) 84%, black 16%);
+  border-color: color-mix(in oklab, var(--lpv-border) 80%, transparent 20%);
+  transform: translateY(-0.02rem);
+}
+
 .lpv-icon-btn:focus-visible {
-  background: color-mix(in oklab, var(--lpv-panel) 82%, black 18%);
+  outline: none;
+  background: color-mix(in oklab, var(--lpv-panel) 84%, black 16%);
+  box-shadow: 0 0 0 0.125rem
+    color-mix(in oklab, var(--lpv-bg) 35%, var(--lpv-text) 65%);
 }
 
 .lpv-icon-btn:disabled {
@@ -211,30 +245,43 @@
 }
 
 .lpv-icon-btn svg {
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 1rem;
+  height: 1rem;
   display: block;
 }
 
 .lpv-scale-btn {
-  min-width: 4rem;
+  min-width: 3.4rem;
   border-radius: 0.4rem;
-  padding: 0.35rem 0.6rem;
-  font-size: 0.86rem;
+  padding: 0.24rem 0.45rem;
+  font-size: 0.78rem;
   line-height: 1;
   cursor: pointer;
   border: 0.0625rem solid var(--lpv-border);
-  background: transparent;
+  background: color-mix(in oklab, var(--lpv-panel) 88%, white 12%);
   color: inherit;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.lpv-scale-btn:hover,
+.lpv-scale-btn:focus-visible {
+  outline: none;
+  background: color-mix(in oklab, var(--lpv-panel) 84%, black 16%);
+  border-color: color-mix(in oklab, var(--lpv-border) 72%, transparent 28%);
+  box-shadow: 0 0 0 0.125rem
+    color-mix(in oklab, var(--lpv-bg) 30%, var(--lpv-text) 70%);
 }
 
 .lpv-page-input {
   width: 3ch;
   min-width: 3ch;
   border-radius: 0.4rem;
-  padding: 0.2rem;
+  padding: 0.1rem;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   border: 0.0625rem solid var(--lpv-border);
   background: transparent;
   color: inherit;
@@ -255,15 +302,37 @@
 
 .lpv-menu {
   position: relative;
+  display: flex;
+  align-items: center;
   z-index: 70;
 }
 
 .lpv-menu > summary {
   list-style: none;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  line-height: 1;
+  text-indent: 0;
+}
+
+.lpv-menu > summary::marker {
+  content: "";
 }
 
 .lpv-menu > summary::-webkit-details-marker {
   display: none;
+}
+
+.lpv-menu-trigger {
+  width: 1.75rem;
+  height: 1.75rem;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
 }
 
 .lpv-menu-panel {
@@ -299,15 +368,17 @@
 }
 
 .lpv-tooltip-panel {
-  position: fixed;
+  position: absolute;
   transform: translateX(-50%);
-  background: #1f1f1f;
-  color: #fff;
+  background: #fff;
+  color: #1f1f1f;
+  border: 0.0625rem solid
+    color-mix(in oklab, var(--lpv-border) 65%, transparent 35%);
   padding: 0.4rem 0.6rem;
   border-radius: 0.35rem;
   font-size: 0.8rem;
   white-space: nowrap;
-  box-shadow: 0 0.5rem 1.25rem rgb(0 0 0 / 18%);
+  box-shadow: 0 0.28rem 0.72rem rgb(0 0 0 / 10%);
   z-index: 200;
   pointer-events: none;
 }
@@ -331,6 +402,12 @@
 }
 
 @media (max-width: 48rem) {
+  .lpv-toolbar {
+    margin: 0.3rem 0.35rem 0;
+    padding: 0.14rem;
+    gap: 0.12rem;
+  }
+
   .lpv-group-nav-wrap {
     gap: 0.3rem;
     padding: 0.2rem 0.35rem;
@@ -352,10 +429,6 @@
     font-size: 0.82rem;
   }
 
-  .lpv-tooltip::after {
-    display: none;
-  }
-
   .lpv-group-nav,
   .lpv-group-actions {
     min-width: 0;
@@ -365,17 +438,41 @@
     gap: 0.2rem;
   }
 
+  .lpv-group-zoom {
+    border-left: 0;
+    border-right: 0;
+    padding: 0;
+  }
+
   .lpv-scale-btn,
   .lpv-desktop-action {
     display: none;
   }
 }
 
-.dark .lpv {
+.lpv-root.lpv-theme-light .lpv {
+  --lpv-bg: #f6f6f6;
+  --lpv-panel: #e9e9e9;
+  --lpv-border: #d1d1d1;
+  --lpv-text: #1f1f1f;
+  --lpv-toolbar-text: #1f1f1f;
+  --lpv-icon-color: #1f1f1f;
+}
+
+.lpv-root.lpv-theme-dark .lpv,
+.dark .lpv-root.lpv-theme-auto .lpv {
   --lpv-bg: #2b2b2b;
   --lpv-panel: #3a3a3a;
   --lpv-border: #525252;
   --lpv-text: #f5f5f5;
   --lpv-toolbar-text: #f5f5f5;
   --lpv-icon-color: #f5f5f5;
+}
+
+.lpv-root.lpv-theme-dark .lpv-tooltip-panel,
+.dark .lpv-root.lpv-theme-auto .lpv-tooltip-panel {
+  background: #161616;
+  color: #fff;
+  border-color: color-mix(in oklab, var(--lpv-border) 72%, transparent 28%);
+  box-shadow: 0 0.28rem 0.72rem rgb(0 0 0 / 22%);
 }

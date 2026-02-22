@@ -22,6 +22,7 @@ const emit = defineEmits([
 
 const pageInput = ref(1);
 const menuRef = ref<HTMLDetailsElement | null>(null);
+const toolbarRef = ref<HTMLElement | null>(null);
 const tooltip = ref<{ text: string; x: number; y: number; visible: boolean }>({
   text: "",
   x: 0,
@@ -47,11 +48,19 @@ function showTooltip(event: Event, text: string): void {
     return;
   }
 
-  const rect = target.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
+  const toolbarRect = toolbarRef.value?.getBoundingClientRect();
+  const x = toolbarRect
+    ? targetRect.left - toolbarRect.left + targetRect.width / 2
+    : targetRect.left + targetRect.width / 2;
+  const y = toolbarRect
+    ? targetRect.bottom - toolbarRect.top + 8
+    : targetRect.bottom + 8;
+
   tooltip.value = {
     text,
-    x: rect.left + rect.width / 2,
-    y: rect.bottom + 8,
+    x,
+    y,
     visible: true,
   };
 }
@@ -68,7 +77,7 @@ function closeMenu(): void {
 </script>
 
 <template>
-  <header class="lpv-toolbar">
+  <header ref="toolbarRef" class="lpv-toolbar">
     <div class="lpv-group-nav-wrap">
       <div class="lpv-group lpv-group-nav">
         <button
@@ -175,7 +184,7 @@ function closeMenu(): void {
     <div class="lpv-group lpv-group-actions">
       <button
         aria-label="Download"
-        class="lpv-icon-btn lpv-action-primary"
+        class="lpv-icon-btn"
         type="button"
         data-tooltip="Download"
         @mouseenter="(event) => showTooltip(event, 'Download')"
@@ -221,7 +230,7 @@ function closeMenu(): void {
 
       <details ref="menuRef" class="lpv-menu">
         <summary
-          class="lpv-icon-btn"
+          class="lpv-icon-btn lpv-menu-trigger"
           aria-label="More options"
           data-tooltip="More options"
           @mouseenter="(event) => showTooltip(event, 'More options')"
@@ -229,7 +238,7 @@ function closeMenu(): void {
           @mouseleave="hideTooltip"
           @blur="hideTooltip"
         >
-          <Icon name="ellipsis-vertical" :size="20" :stroke-width="2.5" />
+          <Icon name="ellipsis-vertical" />
         </summary>
         <div class="lpv-menu-panel">
           <button

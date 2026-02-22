@@ -23,6 +23,7 @@ const props = withDefaults(defineProps<PdfViewerProps>(), {
   maxConcurrentRenders: 2,
   virtualWindowSize: 2,
   showToolbar: true,
+  theme: "auto",
 });
 
 const emit = defineEmits<{
@@ -116,6 +117,7 @@ const maxScale = computed(() => props.maxScale);
 const zoomStep = computed(() => props.zoomStep);
 const maxConcurrentRenders = computed(() => props.maxConcurrentRenders);
 const virtualWindowSize = computed(() => props.virtualWindowSize);
+const themeClass = computed(() => `lpv-theme-${props.theme}`);
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -826,7 +828,7 @@ onBeforeUnmount(async () => {
 </script>
 
 <template>
-  <div class="lpv-root">
+  <div class="lpv-root" :class="themeClass">
     <section class="lpv" :class="{ 'lpv-fit': isFitWidth }">
       <PdfToolbar
         v-if="props.showToolbar"
