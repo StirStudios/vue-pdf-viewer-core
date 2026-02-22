@@ -15,6 +15,8 @@ Use this package when you need a Vue PDF viewer with toolbar controls, virtualiz
 - Pagination controls
 - Download and print
 - Fullscreen toggle
+- Polished compact toolbar and status UI
+- Light and dark mode support
 - TypeScript-first API
 
 ## Install
@@ -145,6 +147,8 @@ Use `theme="auto"` (default) to follow your app-level `.dark` class, or override
   --lpv-text: #1f1f1f;
 }
 ```
+
+The default UI is intentionally compact and refined; CSS variables let you re-skin colors and contrast to match your brand.
 
 ## Playgrounds
 
