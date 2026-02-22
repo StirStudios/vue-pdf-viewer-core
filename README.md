@@ -43,6 +43,8 @@ const pdfUrl = "https://example.com/my.pdf";
 
 ## 60-Second Quick Start (Nuxt 4)
 
+Recommended for Nuxt: enable the Nuxt module so component registration and base CSS are handled automatically.
+
 1. Add the module:
 
 ```ts
@@ -52,7 +54,7 @@ export default defineNuxtConfig({
 });
 ```
 
-2. Use the component with client-only rendering:
+2. Use the globally registered component:
 
 ```vue
 <script setup lang="ts">
@@ -60,9 +62,38 @@ const pdfUrl = "https://example.com/my.pdf";
 </script>
 
 <template>
-  <ClientOnly>
-    <PdfViewer :src="pdfUrl" />
-  </ClientOnly>
+  <PdfViewer :src="pdfUrl" />
+</template>
+```
+
+Alternative (without Nuxt module): direct component import and manual CSS import.
+
+```vue
+<script setup lang="ts">
+import { PdfViewer as CorePdfViewer } from "vue-pdf-viewer-core";
+import "vue-pdf-viewer-core/style.css";
+const pdfUrl = "https://example.com/my.pdf";
+</script>
+
+<template>
+  <CorePdfViewer :src="pdfUrl" />
+</template>
+```
+
+`fitToWidth`, `showToolbar`, and `withCredentials` already have defaults in `PdfViewer`, so you only need to pass them when overriding behavior.
+
+If you wrap the viewer inside a Nuxt layer component, prefer forwarding `useAttrs()` (instead of re-declaring all props) so core defaults stay intact:
+
+```vue
+<script setup lang="ts">
+import { useAttrs } from "vue";
+import type { PdfViewerProps } from "vue-pdf-viewer-core";
+
+const attrs = useAttrs() as Partial<PdfViewerProps>;
+</script>
+
+<template>
+  <PdfViewer v-bind="attrs" />
 </template>
 ```
 
