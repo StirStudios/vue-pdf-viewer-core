@@ -1,3 +1,4 @@
+import { defineComponent, h, useAttrs } from "vue";
 import { describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import PdfViewer from "../src/components/PdfViewer.vue";
@@ -36,5 +37,27 @@ describe("PdfViewer", () => {
 
     expect(wrapper.find(".lpv-scroll").exists()).toBe(true);
     expect(wrapper.find(".lpv-toolbar").exists()).toBe(true);
+  });
+
+  it("preserves PdfViewer defaults when forwarded through a Nuxt-layer style attrs wrapper", async () => {
+    const LayerWrapper = defineComponent({
+      inheritAttrs: false,
+      setup() {
+        const attrs = useAttrs();
+        return () => h(PdfViewer, attrs);
+      },
+    });
+
+    const wrapper = mount(LayerWrapper, {
+      attrs: { src: "https://example.com/file.pdf" },
+    });
+
+    await Promise.resolve();
+    await wrapper.vm.$nextTick();
+
+    // showToolbar defaults to true in PdfViewer.
+    expect(wrapper.find(".lpv-toolbar").exists()).toBe(true);
+    // fitToWidth defaults to true in PdfViewer.
+    expect(wrapper.find(".lpv-fit").exists()).toBe(true);
   });
 });

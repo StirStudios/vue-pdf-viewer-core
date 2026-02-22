@@ -161,6 +161,7 @@ npm -C playground-nuxt run dev
 
 - If you see `window is not defined`, render the viewer in `<ClientOnly>`.
 - If styles are missing, ensure `import 'vue-pdf-viewer-core/style.css'` is loaded.
+- If a Nuxt layer wrapper uses `defineProps()` and forwards `v-bind="props"`, boolean props can be coerced and override core defaults. Prefer `useAttrs()` pass-through wrappers when you want PdfViewer defaults preserved.
 - If PDFs require auth cookies, pass `:with-credentials="true"`.
 
 ## Project Docs
