@@ -863,10 +863,10 @@ onBeforeUnmount(async () => {
         :class="['lpv-scroll', { 'lpv-scroll-loading': isLoading }]"
         role="region"
       >
-        <div v-if="isLoading" class="lpv-loading-overlay" aria-live="polite">
+        <p v-if="isLoading" class="lpv-scroll-loader" aria-live="polite">
           <span aria-hidden="true" class="lpv-spinner"></span>
           Loading PDF...
-        </div>
+        </p>
         <div ref="pagesContainerRef" class="lpv-pages">
           <div
             aria-hidden="true"
