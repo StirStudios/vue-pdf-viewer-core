@@ -858,7 +858,7 @@ onBeforeUnmount(async () => {
       <div
         ref="scrollContainerRef"
         aria-live="polite"
-        class="lpv-scroll"
+        :class="['lpv-scroll', { 'lpv-scroll-loading': isLoading }]"
         role="region"
       >
         <div v-if="isLoading" class="lpv-loading-overlay" aria-live="polite">
