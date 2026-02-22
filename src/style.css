@@ -5,6 +5,7 @@
   --lpv-text: #1f1f1f;
   --lpv-toolbar-text: #1f1f1f;
   --lpv-icon-color: #1f1f1f;
+  --lpv-error: #b42318;
 }
 
 .lpv-root {
@@ -25,10 +26,6 @@
   font-size: 1.02rem;
 }
 
-.lpv-message-error {
-  color: #b42318;
-}
-
 .lpv-scroll {
   height: auto;
   overflow-x: auto;
@@ -43,7 +40,6 @@
   grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   align-items: start;
-  min-height: clamp(16rem, 42vh, 24rem);
 }
 
 .lpv-scroll-loading .lpv-scroll-loader,
@@ -57,7 +53,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin: 0;
+  margin-top: 2.5rem;
   padding: 0.28rem 0.56rem;
   border-radius: 999rem;
   font-size: 0.9rem;
@@ -66,7 +62,12 @@
   border: 0.0625rem solid
     color-mix(in oklab, var(--lpv-border) 62%, transparent 38%);
   pointer-events: none;
-  transform: translateY(3rem);
+}
+
+.lpv-scroll-loader-error {
+  background: color-mix(in oklab, var(--lpv-error) 14%, var(--lpv-panel) 86%);
+  border-color: color-mix(in oklab, var(--lpv-error) 32%, transparent 68%);
+  color: var(--lpv-error);
 }
 
 .lpv-pages {
@@ -430,6 +431,7 @@
   --lpv-text: #f5f5f5;
   --lpv-toolbar-text: #f5f5f5;
   --lpv-icon-color: #f5f5f5;
+  --lpv-error: #fda29b;
 }
 
 :where(.lpv-root.lpv-theme-dark) .lpv-tooltip-panel,
@@ -451,4 +453,11 @@
 .dark :where(.lpv-root.lpv-theme-auto) .lpv-scroll-loader .lpv-spinner {
   border-color: rgb(255 255 255 / 32%);
   border-top-color: rgb(255 255 255 / 85%);
+}
+
+:where(.lpv-root.lpv-theme-dark) .lpv-scroll-loader-error,
+.dark :where(.lpv-root.lpv-theme-auto) .lpv-scroll-loader-error {
+  background: color-mix(in oklab, var(--lpv-error) 18%, #2b2b2b 82%);
+  border-color: color-mix(in oklab, var(--lpv-error) 45%, transparent 55%);
+  color: var(--lpv-error);
 }

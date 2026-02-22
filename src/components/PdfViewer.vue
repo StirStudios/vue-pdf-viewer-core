@@ -10,6 +10,7 @@ import {
   watch,
 } from "vue";
 import PdfToolbar from "./PdfToolbar.vue";
+import Icon from "./Icon.vue";
 import type { PdfViewerProps } from "../types";
 
 const props = withDefaults(defineProps<PdfViewerProps>(), {
@@ -854,18 +855,27 @@ onBeforeUnmount(async () => {
       />
 
       <p v-if="actionMessage" class="lpv-message">{{ actionMessage }}</p>
-      <p v-if="errorMessage" class="lpv-message lpv-message-error">
-        {{ errorMessage }}
-      </p>
       <div
         ref="scrollContainerRef"
         aria-live="polite"
-        :class="['lpv-scroll', { 'lpv-scroll-loading': isLoading }]"
+        :class="[
+          'lpv-scroll',
+          { 'lpv-scroll-loading': isLoading || !!errorMessage },
+        ]"
         role="region"
       >
-        <p v-if="isLoading" class="lpv-scroll-loader" aria-live="polite">
-          <span aria-hidden="true" class="lpv-spinner"></span>
-          Loading PDF...
+        <p
+          v-if="isLoading || errorMessage"
+          :class="[
+            'lpv-scroll-loader',
+            { 'lpv-scroll-loader-error': !isLoading && !!errorMessage },
+          ]"
+          :role="!isLoading && errorMessage ? 'alert' : undefined"
+          aria-live="polite"
+        >
+          <span v-if="isLoading" aria-hidden="true" class="lpv-spinner"></span>
+          <Icon v-else name="alert-triangle" :size="16" :stroke-width="2.2" />
+          {{ isLoading ? "Loading PDF..." : errorMessage }}
         </p>
         <div ref="pagesContainerRef" class="lpv-pages">
           <div
