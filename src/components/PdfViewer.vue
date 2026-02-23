@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<PdfViewerProps>(), {
   initialScale: 1,
   fitToWidth: true,
   minScale: 0.5,
-  maxScale: 3,
+  maxScale: 5,
   zoomStep: 0.1,
   maxConcurrentRenders: 2,
   virtualWindowSize: 2,

@@ -73,7 +73,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-top: 2.5rem;
+  margin: 2.5rem;
   padding: 0.28rem 0.56rem;
   border-radius: 999rem;
   font-size: 0.9rem;
@@ -111,8 +111,8 @@
   overflow: hidden;
   box-shadow: var(--lpv-surface-shadow);
   margin-inline: auto;
-  min-width: 100%;
   width: fit-content;
+  max-width: 100%;
 }
 
 .lpv-fit .lpv-scroll {
@@ -161,8 +161,7 @@
   align-items: center;
   gap: 0.12rem;
   max-width: 100%;
-  overflow-x: auto;
-  overflow-y: visible;
+  overflow: visible;
   scrollbar-width: none;
 }
 
@@ -385,6 +384,11 @@
 
   .lpv-toolbar {
     padding: 0.14rem;
+  }
+
+  .lpv-toolbar-row {
+    overflow-x: auto;
+    overflow-y: visible;
   }
 
   .lpv-first-last {

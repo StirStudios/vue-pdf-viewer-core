@@ -120,8 +120,8 @@ function closeMenu(): void {
           @blur="commitPageInput"
           @keyup.enter="commitPageInput"
         />
-        <span class="lpv-page-total">
-          {{ hasMultiplePages ? `of ${totalPages || 1}` : "1 of 1" }}
+        <span v-if="hasMultiplePages" class="lpv-page-total">
+          {{ `of ${totalPages || 1}` }}
         </span>
         <button
           v-if="hasMultiplePages"
