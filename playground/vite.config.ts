@@ -23,7 +23,9 @@ export default defineConfig({
     alias: [
       {
         find: "vue-pdf-viewer-core/style.css",
-        replacement: fileURLToPath(new URL("../src/style.css", import.meta.url)),
+        replacement: fileURLToPath(
+          new URL("../src/style.css", import.meta.url),
+        ),
       },
       {
         find: "vue-pdf-viewer-core",
