@@ -11,7 +11,8 @@ const props = defineProps<{
     | "download"
     | "printer"
     | "expand"
-    | "ellipsis-vertical";
+    | "ellipsis-vertical"
+    | "alert-triangle";
   size?: number;
   strokeWidth?: number;
 }>();
@@ -76,6 +77,16 @@ const icons: Record<string, Array<[string, Record<string, string>]>> = {
     ["circle", { cx: "12", cy: "12", r: "1" }],
     ["circle", { cx: "12", cy: "5", r: "1" }],
     ["circle", { cx: "12", cy: "19", r: "1" }],
+  ],
+  "alert-triangle": [
+    [
+      "path",
+      {
+        d: "m10.29 3.86-7.4 13.2A2 2 0 0 0 4.63 20h14.74a2 2 0 0 0 1.74-2.94l-7.4-13.2a2 2 0 0 0-3.42 0Z",
+      },
+    ],
+    ["line", { x1: "12", x2: "12", y1: "9", y2: "13" }],
+    ["line", { x1: "12", x2: "12.01", y1: "17", y2: "17" }],
   ],
 };
 </script>

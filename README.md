@@ -15,6 +15,8 @@ Use this package when you need a Vue PDF viewer with toolbar controls, virtualiz
 - Pagination controls
 - Download and print
 - Fullscreen toggle
+- Polished compact toolbar and status UI
+- Light and dark mode support
 - TypeScript-first API
 
 ## Install
@@ -80,7 +82,7 @@ const pdfUrl = "https://example.com/my.pdf";
 </template>
 ```
 
-`fitToWidth`, `showToolbar`, and `withCredentials` already have defaults in `PdfViewer`, so you only need to pass them when overriding behavior.
+`fitToWidth`, `showToolbar`, `withCredentials`, and `theme` already have defaults in `PdfViewer`, so you only need to pass them when overriding behavior.
 
 If you wrap the viewer inside a Nuxt layer component, prefer forwarding `useAttrs()` (instead of re-declaring all props) so core defaults stay intact:
 
@@ -114,11 +116,12 @@ const attrs = useAttrs() as Partial<PdfViewerProps>;
 - `initialScale` (`1`)
 - `fitToWidth` (`true`)
 - `minScale` (`0.5`)
-- `maxScale` (`3`)
+- `maxScale` (`5`)
 - `zoomStep` (`0.1`)
 - `maxConcurrentRenders` (`2`)
 - `virtualWindowSize` (`2`)
 - `showToolbar` (`true`)
+- `theme` (`"auto"`) accepts `"auto" | "light" | "dark"`
 
 ## Events
 
@@ -128,7 +131,13 @@ const attrs = useAttrs() as Partial<PdfViewerProps>;
 
 ## Theming
 
-You can override CSS variables to match your app theme:
+Set theme mode directly via prop:
+
+```vue
+<PdfViewer :src="pdfUrl" theme="dark" />
+```
+
+Use `theme="auto"` (default) to follow your app-level `.dark` class, or override CSS variables to match your app theme:
 
 ```css
 :root {
@@ -136,8 +145,27 @@ You can override CSS variables to match your app theme:
   --lpv-panel: #e9e9e9;
   --lpv-border: #d1d1d1;
   --lpv-text: #1f1f1f;
+  --lpv-toolbar-text: #1f1f1f;
+  --lpv-icon-color: #1f1f1f;
+  --lpv-error: #b42318;
+
+  --lpv-surface-radius: 0.45rem;
+  --lpv-inline-gutter: 0.45rem;
+  --lpv-toolbar-top-gap: 0.25rem;
+  --lpv-toolbar-sticky-top: 0.5rem;
+
+  --lpv-tooltip-bg: #fff;
+  --lpv-tooltip-text: #1f1f1f;
+  --lpv-tooltip-border: color-mix(
+    in oklab,
+    var(--lpv-border) 65%,
+    transparent 35%
+  );
+  --lpv-tooltip-shadow: 0 0.28rem 0.72rem rgb(0 0 0 / 10%);
 }
 ```
+
+The default UI is intentionally compact and refined; CSS variables let you re-skin colors and contrast to match your brand.
 
 ## Playgrounds
 

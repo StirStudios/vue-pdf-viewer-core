@@ -1,0 +1,134 @@
+:root {
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  color: #141414;
+  background: #f4f2ee;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.app {
+  min-height: 100vh;
+  padding: 1.25rem 1.25rem 2rem;
+  background: #f4f2ee;
+  color: #141414;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+}
+
+.hero h1,
+.hero p {
+  margin: 0;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.hero h1 {
+  font-size: clamp(1.4rem, 1.3vw + 1rem, 2.1rem);
+}
+
+.hero p {
+  color: #4a4a4a;
+  font-size: 0.92rem;
+}
+
+.state-lab {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.8rem;
+  border: 1px solid #ddd6cf;
+  background: #f8f4ee;
+}
+
+.lab-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lab-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #57534e;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.chip-row {
+  display: inline-flex;
+  gap: 0.2rem;
+  padding: 0.14rem;
+  border-radius: 999rem;
+  border: 1px solid #ddd6cf;
+  background: #f1ece6;
+}
+
+.chip {
+  border: 0;
+  background: transparent;
+  color: #2f2f2f;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999rem;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.chip.active {
+  background: #1f1f1f;
+  color: #fff;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.input {
+  flex: 1 1 18rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d9d4cf;
+  font-size: 0.9rem;
+}
+
+.button {
+  padding: 0.55rem 0.9rem;
+  border-radius: 0.5rem;
+  border: 0;
+  background: #1f1f1f;
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.viewer-card {
+  background: #fffaf3;
+  padding: 1rem;
+  border-radius: 0.9rem;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 8%);
+}
+
+.viewer-card.dark {
+  background: #1b1e25;
+  box-shadow: 0 20px 45px rgb(0 0 0 / 28%);
+}
+
+.viewer-card .lpv {
+  font-size: 16px;
+}

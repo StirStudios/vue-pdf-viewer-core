@@ -1,6 +1,6 @@
 {
   "name": "vue-pdf-viewer-core",
-  "version": "0.1.4",
+  "version": "0.2.7",
   "description": "Fast, lightweight PDF viewer for Vue 3 and Nuxt 4 powered by pdf.js",
   "type": "module",
   "license": "MIT",

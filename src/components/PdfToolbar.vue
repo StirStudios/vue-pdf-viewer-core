@@ -22,6 +22,7 @@ const emit = defineEmits([
 
 const pageInput = ref(1);
 const menuRef = ref<HTMLDetailsElement | null>(null);
+const toolbarRef = ref<HTMLElement | null>(null);
 const tooltip = ref<{ text: string; x: number; y: number; visible: boolean }>({
   text: "",
   x: 0,
@@ -47,11 +48,19 @@ function showTooltip(event: Event, text: string): void {
     return;
   }
 
-  const rect = target.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
+  const toolbarRect = toolbarRef.value?.getBoundingClientRect();
+  const x = toolbarRect
+    ? targetRect.left - toolbarRect.left + targetRect.width / 2
+    : targetRect.left + targetRect.width / 2;
+  const y = toolbarRect
+    ? targetRect.bottom - toolbarRect.top + 8
+    : targetRect.bottom + 8;
+
   tooltip.value = {
     text,
-    x: rect.left + rect.width / 2,
-    y: rect.bottom + 8,
+    x,
+    y,
     visible: true,
   };
 }
@@ -68,8 +77,8 @@ function closeMenu(): void {
 </script>
 
 <template>
-  <header class="lpv-toolbar">
-    <div class="lpv-group-nav-wrap">
+  <header ref="toolbarRef" class="lpv-toolbar">
+    <div class="lpv-toolbar-row">
       <div class="lpv-group lpv-group-nav">
         <button
           v-if="hasMultiplePages"
@@ -111,8 +120,8 @@ function closeMenu(): void {
           @blur="commitPageInput"
           @keyup.enter="commitPageInput"
         />
-        <span class="lpv-page-total">
-          {{ hasMultiplePages ? `of ${totalPages || 1}` : "1 of 1" }}
+        <span v-if="hasMultiplePages" class="lpv-page-total">
+          {{ `of ${totalPages || 1}` }}
         </span>
         <button
           v-if="hasMultiplePages"
@@ -130,196 +139,202 @@ function closeMenu(): void {
           <Icon name="chevron-down" />
         </button>
       </div>
-    </div>
-    <div class="lpv-group lpv-group-zoom">
-      <button
-        aria-label="Zoom out"
-        class="lpv-icon-btn"
-        type="button"
-        data-tooltip="Zoom out"
-        @mouseenter="(event) => showTooltip(event, 'Zoom out')"
-        @focus="(event) => showTooltip(event, 'Zoom out')"
-        @mouseleave="hideTooltip"
-        @blur="hideTooltip"
-        @click="emit('zoom-out')"
-      >
-        <Icon name="zoom-out" />
-      </button>
-      <button
-        aria-label="Fit to width"
-        class="lpv-scale-btn"
-        type="button"
-        data-tooltip="Fit to width"
-        @mouseenter="(event) => showTooltip(event, 'Fit to width')"
-        @focus="(event) => showTooltip(event, 'Fit to width')"
-        @mouseleave="hideTooltip"
-        @blur="hideTooltip"
-        @click="emit('fit-width')"
-      >
-        {{ zoomPercent }}
-      </button>
-      <button
-        aria-label="Zoom in"
-        class="lpv-icon-btn"
-        type="button"
-        data-tooltip="Zoom in"
-        @mouseenter="(event) => showTooltip(event, 'Zoom in')"
-        @focus="(event) => showTooltip(event, 'Zoom in')"
-        @mouseleave="hideTooltip"
-        @blur="hideTooltip"
-        @click="emit('zoom-in')"
-      >
-        <Icon name="zoom-in" />
-      </button>
-    </div>
-    <div class="lpv-group lpv-group-actions">
-      <button
-        aria-label="Download"
-        class="lpv-icon-btn lpv-action-primary"
-        type="button"
-        data-tooltip="Download"
-        @mouseenter="(event) => showTooltip(event, 'Download')"
-        @focus="(event) => showTooltip(event, 'Download')"
-        @mouseleave="hideTooltip"
-        @blur="hideTooltip"
-        @click="emit('download')"
-      >
-        <Icon name="download" />
-      </button>
-      <button
-        aria-label="Print"
-        class="lpv-icon-btn lpv-desktop-action"
-        type="button"
-        data-tooltip="Print"
-        @mouseenter="(event) => showTooltip(event, 'Print')"
-        @focus="(event) => showTooltip(event, 'Print')"
-        @mouseleave="hideTooltip"
-        @blur="hideTooltip"
-        @click="emit('print')"
-      >
-        <Icon name="printer" />
-      </button>
-      <button
-        :aria-label="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'"
-        class="lpv-icon-btn lpv-desktop-action"
-        type="button"
-        :data-tooltip="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'"
-        @mouseenter="
-          (event) =>
-            showTooltip(event, isFullscreen ? 'Exit fullscreen' : 'Fullscreen')
-        "
-        @focus="
-          (event) =>
-            showTooltip(event, isFullscreen ? 'Exit fullscreen' : 'Fullscreen')
-        "
-        @mouseleave="hideTooltip"
-        @blur="hideTooltip"
-        @click="emit('toggle-fullscreen')"
-      >
-        <Icon name="expand" />
-      </button>
-
-      <details ref="menuRef" class="lpv-menu">
-        <summary
+      <div class="lpv-group lpv-group-zoom">
+        <button
+          aria-label="Zoom out"
           class="lpv-icon-btn"
-          aria-label="More options"
-          data-tooltip="More options"
-          @mouseenter="(event) => showTooltip(event, 'More options')"
-          @focus="(event) => showTooltip(event, 'More options')"
+          type="button"
+          data-tooltip="Zoom out"
+          @mouseenter="(event) => showTooltip(event, 'Zoom out')"
+          @focus="(event) => showTooltip(event, 'Zoom out')"
           @mouseleave="hideTooltip"
           @blur="hideTooltip"
+          @click="emit('zoom-out')"
         >
-          <Icon name="ellipsis-vertical" :size="20" :stroke-width="2.5" />
-        </summary>
-        <div class="lpv-menu-panel">
-          <button
-            class="lpv-menu-item"
-            type="button"
-            @click="
-              () => {
-                closeMenu();
-                emit('download');
-              }
-            "
+          <Icon name="zoom-out" />
+        </button>
+        <button
+          aria-label="Fit to width"
+          class="lpv-scale-btn"
+          type="button"
+          data-tooltip="Fit to width"
+          @mouseenter="(event) => showTooltip(event, 'Fit to width')"
+          @focus="(event) => showTooltip(event, 'Fit to width')"
+          @mouseleave="hideTooltip"
+          @blur="hideTooltip"
+          @click="emit('fit-width')"
+        >
+          {{ zoomPercent }}
+        </button>
+        <button
+          aria-label="Zoom in"
+          class="lpv-icon-btn"
+          type="button"
+          data-tooltip="Zoom in"
+          @mouseenter="(event) => showTooltip(event, 'Zoom in')"
+          @focus="(event) => showTooltip(event, 'Zoom in')"
+          @mouseleave="hideTooltip"
+          @blur="hideTooltip"
+          @click="emit('zoom-in')"
+        >
+          <Icon name="zoom-in" />
+        </button>
+      </div>
+      <div class="lpv-group lpv-group-actions">
+        <button
+          aria-label="Download"
+          class="lpv-icon-btn"
+          type="button"
+          data-tooltip="Download"
+          @mouseenter="(event) => showTooltip(event, 'Download')"
+          @focus="(event) => showTooltip(event, 'Download')"
+          @mouseleave="hideTooltip"
+          @blur="hideTooltip"
+          @click="emit('download')"
+        >
+          <Icon name="download" />
+        </button>
+        <button
+          aria-label="Print"
+          class="lpv-icon-btn lpv-desktop-action"
+          type="button"
+          data-tooltip="Print"
+          @mouseenter="(event) => showTooltip(event, 'Print')"
+          @focus="(event) => showTooltip(event, 'Print')"
+          @mouseleave="hideTooltip"
+          @blur="hideTooltip"
+          @click="emit('print')"
+        >
+          <Icon name="printer" />
+        </button>
+        <button
+          :aria-label="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'"
+          class="lpv-icon-btn lpv-desktop-action"
+          type="button"
+          :data-tooltip="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'"
+          @mouseenter="
+            (event) =>
+              showTooltip(
+                event,
+                isFullscreen ? 'Exit fullscreen' : 'Fullscreen',
+              )
+          "
+          @focus="
+            (event) =>
+              showTooltip(
+                event,
+                isFullscreen ? 'Exit fullscreen' : 'Fullscreen',
+              )
+          "
+          @mouseleave="hideTooltip"
+          @blur="hideTooltip"
+          @click="emit('toggle-fullscreen')"
+        >
+          <Icon name="expand" />
+        </button>
+
+        <details ref="menuRef" class="lpv-menu">
+          <summary
+            class="lpv-icon-btn lpv-menu-trigger"
+            aria-label="More options"
+            data-tooltip="More options"
+            @mouseenter="(event) => showTooltip(event, 'More options')"
+            @focus="(event) => showTooltip(event, 'More options')"
+            @mouseleave="hideTooltip"
+            @blur="hideTooltip"
           >
-            Download
-          </button>
-          <button
-            class="lpv-menu-item"
-            type="button"
-            @click="
-              () => {
-                closeMenu();
-                emit('print');
-              }
-            "
-          >
-            Print
-          </button>
-          <button
-            class="lpv-menu-item"
-            type="button"
-            @click="
-              () => {
-                closeMenu();
-                emit('toggle-fullscreen');
-              }
-            "
-          >
-            {{ isFullscreen ? "Exit fullscreen" : "Fullscreen" }}
-          </button>
-          <button
-            class="lpv-menu-item"
-            type="button"
-            @click="
-              () => {
-                closeMenu();
-                emit('fit-width');
-              }
-            "
-          >
-            Fit to width
-          </button>
-          <button
-            class="lpv-menu-item"
-            type="button"
-            @click="
-              () => {
-                closeMenu();
-                emit('zoom-100');
-              }
-            "
-          >
-            Zoom to 100%
-          </button>
-          <button
-            v-if="hasMultiplePages"
-            class="lpv-menu-item"
-            type="button"
-            @click="
-              () => {
-                closeMenu();
-                emit('first-page');
-              }
-            "
-          >
-            First page
-          </button>
-          <button
-            v-if="hasMultiplePages"
-            class="lpv-menu-item"
-            type="button"
-            @click="
-              () => {
-                closeMenu();
-                emit('last-page');
-              }
-            "
-          >
-            Last page
-          </button>
-        </div>
-      </details>
+            <Icon name="ellipsis-vertical" />
+          </summary>
+          <div class="lpv-menu-panel">
+            <button
+              class="lpv-menu-item"
+              type="button"
+              @click="
+                () => {
+                  closeMenu();
+                  emit('download');
+                }
+              "
+            >
+              Download
+            </button>
+            <button
+              class="lpv-menu-item"
+              type="button"
+              @click="
+                () => {
+                  closeMenu();
+                  emit('print');
+                }
+              "
+            >
+              Print
+            </button>
+            <button
+              class="lpv-menu-item"
+              type="button"
+              @click="
+                () => {
+                  closeMenu();
+                  emit('toggle-fullscreen');
+                }
+              "
+            >
+              {{ isFullscreen ? "Exit fullscreen" : "Fullscreen" }}
+            </button>
+            <button
+              class="lpv-menu-item"
+              type="button"
+              @click="
+                () => {
+                  closeMenu();
+                  emit('fit-width');
+                }
+              "
+            >
+              Fit to width
+            </button>
+            <button
+              class="lpv-menu-item"
+              type="button"
+              @click="
+                () => {
+                  closeMenu();
+                  emit('zoom-100');
+                }
+              "
+            >
+              Zoom to 100%
+            </button>
+            <button
+              v-if="hasMultiplePages"
+              class="lpv-menu-item"
+              type="button"
+              @click="
+                () => {
+                  closeMenu();
+                  emit('first-page');
+                }
+              "
+            >
+              First page
+            </button>
+            <button
+              v-if="hasMultiplePages"
+              class="lpv-menu-item"
+              type="button"
+              @click="
+                () => {
+                  closeMenu();
+                  emit('last-page');
+                }
+              "
+            >
+              Last page
+            </button>
+          </div>
+        </details>
+      </div>
     </div>
     <div
       v-if="tooltip.visible"
