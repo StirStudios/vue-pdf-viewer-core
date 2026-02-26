@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 
@@ -18,4 +19,16 @@ export default defineConfig({
     },
   ],
   base: "./",
+  resolve: {
+    alias: [
+      {
+        find: "vue-pdf-viewer-core/style.css",
+        replacement: fileURLToPath(new URL("../src/style.css", import.meta.url)),
+      },
+      {
+        find: "vue-pdf-viewer-core",
+        replacement: fileURLToPath(new URL("../src/index.ts", import.meta.url)),
+      },
+    ],
+  },
 });
