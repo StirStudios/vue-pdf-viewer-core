@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import type { PdfToolbarProps } from "../types";
 import Icon from "./Icon.vue";
 
@@ -22,7 +22,9 @@ const emit = defineEmits([
 
 const pageInput = ref(1);
 const menuRef = ref<HTMLDetailsElement | null>(null);
+const menuTriggerRef = ref<HTMLElement | null>(null);
 const toolbarRef = ref<HTMLElement | null>(null);
+const isMenuOpen = ref(false);
 const tooltip = ref<{ text: string; x: number; y: number; visible: boolean }>({
   text: "",
   x: 0,
@@ -73,11 +75,39 @@ function closeMenu(): void {
   if (menuRef.value) {
     menuRef.value.open = false;
   }
+  isMenuOpen.value = false;
 }
+
+function onMenuToggle(event: Event): void {
+  const target = event.currentTarget;
+  if (!(target instanceof HTMLDetailsElement)) {
+    return;
+  }
+  isMenuOpen.value = target.open;
+}
+
+function onMenuKeydown(event: KeyboardEvent): void {
+  if (event.key !== "Escape" || !isMenuOpen.value) {
+    return;
+  }
+
+  event.preventDefault();
+  closeMenu();
+  menuTriggerRef.value?.focus();
+}
+
+const zoomButtonLabel = computed(
+  () => `Current zoom ${props.zoomPercent}. Fit to width`,
+);
 </script>
 
 <template>
-  <header ref="toolbarRef" class="lpv-toolbar">
+  <div
+    ref="toolbarRef"
+    aria-label="PDF viewer toolbar"
+    class="lpv-toolbar"
+    role="toolbar"
+  >
     <div class="lpv-toolbar-row">
       <div class="lpv-group lpv-group-nav">
         <button
@@ -113,6 +143,7 @@ function closeMenu(): void {
         <input
           v-if="hasMultiplePages"
           v-model.number="pageInput"
+          aria-label="Page number"
           class="lpv-page-input"
           :max="totalPages || 1"
           min="1"
@@ -120,7 +151,7 @@ function closeMenu(): void {
           @blur="commitPageInput"
           @keyup.enter="commitPageInput"
         />
-        <span v-if="hasMultiplePages" class="lpv-page-total">
+        <span v-if="hasMultiplePages" class="lpv-page-total" aria-live="off">
           {{ `of ${totalPages || 1}` }}
         </span>
         <button
@@ -154,7 +185,7 @@ function closeMenu(): void {
           <Icon name="zoom-out" />
         </button>
         <button
-          aria-label="Fit to width"
+          :aria-label="zoomButtonLabel"
           class="lpv-scale-btn"
           type="button"
           data-tooltip="Fit to width"
@@ -233,10 +264,18 @@ function closeMenu(): void {
           <Icon name="expand" />
         </button>
 
-        <details ref="menuRef" class="lpv-menu">
+        <details
+          ref="menuRef"
+          class="lpv-menu"
+          @keydown="onMenuKeydown"
+          @toggle="onMenuToggle"
+        >
           <summary
+            ref="menuTriggerRef"
             class="lpv-icon-btn lpv-menu-trigger"
             aria-label="More options"
+            aria-haspopup="menu"
+            :aria-expanded="isMenuOpen ? 'true' : 'false'"
             data-tooltip="More options"
             @mouseenter="(event) => showTooltip(event, 'More options')"
             @focus="(event) => showTooltip(event, 'More options')"
@@ -245,9 +284,10 @@ function closeMenu(): void {
           >
             <Icon name="ellipsis-vertical" />
           </summary>
-          <div class="lpv-menu-panel">
+          <div class="lpv-menu-panel" role="menu">
             <button
               class="lpv-menu-item"
+              role="menuitem"
               type="button"
               @click="
                 () => {
@@ -260,6 +300,7 @@ function closeMenu(): void {
             </button>
             <button
               class="lpv-menu-item"
+              role="menuitem"
               type="button"
               @click="
                 () => {
@@ -272,6 +313,7 @@ function closeMenu(): void {
             </button>
             <button
               class="lpv-menu-item"
+              role="menuitem"
               type="button"
               @click="
                 () => {
@@ -284,6 +326,7 @@ function closeMenu(): void {
             </button>
             <button
               class="lpv-menu-item"
+              role="menuitem"
               type="button"
               @click="
                 () => {
@@ -296,6 +339,7 @@ function closeMenu(): void {
             </button>
             <button
               class="lpv-menu-item"
+              role="menuitem"
               type="button"
               @click="
                 () => {
@@ -309,6 +353,7 @@ function closeMenu(): void {
             <button
               v-if="hasMultiplePages"
               class="lpv-menu-item"
+              role="menuitem"
               type="button"
               @click="
                 () => {
@@ -322,6 +367,7 @@ function closeMenu(): void {
             <button
               v-if="hasMultiplePages"
               class="lpv-menu-item"
+              role="menuitem"
               type="button"
               @click="
                 () => {
@@ -338,11 +384,12 @@ function closeMenu(): void {
     </div>
     <div
       v-if="tooltip.visible"
+      aria-hidden="true"
       class="lpv-tooltip-panel"
       :style="{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }"
       role="tooltip"
     >
       {{ tooltip.text }}
     </div>
-  </header>
+  </div>
 </template>

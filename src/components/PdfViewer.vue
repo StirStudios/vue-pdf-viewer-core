@@ -38,6 +38,8 @@ const pagesContainerRef = ref<HTMLElement | null>(null);
 const isLoading = ref(false);
 const errorMessage = ref("");
 const actionMessage = ref("");
+const politeAnnouncement = ref("");
+const assertiveAnnouncement = ref("");
 const totalPages = ref(0);
 const currentPage = ref(props.initialPage);
 const scale = ref(props.initialScale);
@@ -796,6 +798,31 @@ watch(currentPage, (page) => {
       syncVirtualWindow(page);
     }
     emit("page-change", page);
+    politeAnnouncement.value = `Page ${page} of ${totalPages.value}.`;
+  }
+});
+
+watch(scale, (value) => {
+  if (totalPages.value > 0) {
+    politeAnnouncement.value = `Zoom ${Math.round(value * 100)} percent.`;
+  }
+});
+
+watch(isLoading, (value) => {
+  if (value) {
+    politeAnnouncement.value = "Loading PDF document.";
+  }
+});
+
+watch(errorMessage, (value) => {
+  if (value) {
+    assertiveAnnouncement.value = value;
+  }
+});
+
+watch(actionMessage, (value) => {
+  if (value) {
+    assertiveAnnouncement.value = value;
   }
 });
 
@@ -830,7 +857,12 @@ onBeforeUnmount(async () => {
 
 <template>
   <div class="lpv-root" :class="themeClass">
-    <section class="lpv" :class="{ 'lpv-fit': isFitWidth }">
+    <section
+      aria-label="PDF document viewer"
+      class="lpv"
+      :class="{ 'lpv-fit': isFitWidth }"
+      role="region"
+    >
       <PdfToolbar
         v-if="props.showToolbar"
         :can-go-next="canGoNext"
@@ -854,10 +886,17 @@ onBeforeUnmount(async () => {
         @zoom-out="zoomOut"
       />
 
+      <p class="lpv-sr-only" aria-atomic="true" aria-live="polite">
+        {{ politeAnnouncement }}
+      </p>
+      <p class="lpv-sr-only" aria-atomic="true" aria-live="assertive">
+        {{ assertiveAnnouncement }}
+      </p>
       <p v-if="actionMessage" class="lpv-message">{{ actionMessage }}</p>
       <div
         ref="scrollContainerRef"
-        aria-live="polite"
+        :aria-busy="isLoading ? 'true' : 'false'"
+        aria-label="PDF pages"
         :class="[
           'lpv-scroll',
           { 'lpv-scroll-loading': isLoading || !!errorMessage },
@@ -870,8 +909,9 @@ onBeforeUnmount(async () => {
             'lpv-scroll-loader',
             { 'lpv-scroll-loader-error': !isLoading && !!errorMessage },
           ]"
-          :role="!isLoading && errorMessage ? 'alert' : undefined"
-          aria-live="polite"
+          :role="!isLoading && errorMessage ? 'alert' : 'status'"
+          :aria-live="!isLoading && errorMessage ? 'assertive' : 'polite'"
+          aria-atomic="true"
         >
           <span v-if="isLoading" aria-hidden="true" class="lpv-spinner"></span>
           <Icon v-else name="alert-triangle" :size="16" :stroke-width="2.2" />
@@ -887,8 +927,10 @@ onBeforeUnmount(async () => {
             v-for="pageNumber in virtualPageNumbers"
             :key="pageNumber"
             :ref="(el) => setPageRef(pageNumber, el)"
+            :aria-label="`Page ${pageNumber}`"
             class="lpv-page"
             :data-page-number="pageNumber"
+            role="group"
             :style="{ minHeight: `${estimatedPageHeight}px` }"
           >
             <canvas

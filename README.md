@@ -192,11 +192,39 @@ npm -C playground-nuxt run dev
 - If a Nuxt layer wrapper uses `defineProps()` and forwards `v-bind="props"`, boolean props can be coerced and override core defaults. Prefer `useAttrs()` pass-through wrappers when you want PdfViewer defaults preserved.
 - If PDFs require auth cookies, pass `:with-credentials="true"`.
 
+## Accessibility
+
+This project targets practical WCAG 2.1/2.2 AA conformance for core viewer and toolbar flows.
+
+Implemented accessibility hardening includes:
+
+- Semantic roles and accessible names for core toolbar and viewer controls
+- Keyboard interaction support for navigation/actions, including menu `Escape` close + focus return
+- Live announcements for loading, errors, page changes, and zoom updates
+- Focus-visible states for interactive controls
+- Theme-aware UI surfaces (toolbar, menu, tooltip) in light/dark/auto modes
+
+- Automated checks: `npm run test:a11y` (axe in Vitest) and CI regression step.
+- Contrast regression checks: `npm run test:contrast` for core light/dark token pairs.
+- Manual checks: keyboard-only and screen-reader matrices in `docs/accessibility/`.
+- Theme checks: contrast audit notes for light/dark/auto themes in `docs/accessibility/contrast-audit.md`.
+- Scope: `PdfViewer`, `PdfToolbar`, and default styles in `src/style.css`.
+
+Known limitations:
+
+- Canvas-rendered PDF page content is not semantically exposed to assistive tech by default.
+- This is a best-effort WCAG AA implementation, not a legal certification.
+- Formal certification/legal conformance claims require external third-party audit.
+
 ## Project Docs
 
 - Contributing: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
 - Code of Conduct: [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md)
 - Security: [`SECURITY.md`](./SECURITY.md)
+- Accessibility Baseline Report: [`docs/accessibility/baseline-report.md`](./docs/accessibility/baseline-report.md)
+- Keyboard Matrix: [`docs/accessibility/keyboard-matrix.md`](./docs/accessibility/keyboard-matrix.md)
+- Screen Reader Matrix: [`docs/accessibility/screen-reader-matrix.md`](./docs/accessibility/screen-reader-matrix.md)
+- Contrast Audit: [`docs/accessibility/contrast-audit.md`](./docs/accessibility/contrast-audit.md)
 
 ## License
 
