@@ -55,6 +55,7 @@ let currentLoadTask:
   | import("pdfjs-dist/types/src/display/api").PDFDocumentLoadingTask
   | null = null;
 let renderToken = 0;
+let loadToken = 0;
 let basePageWidth = 0;
 let resizeObserver: ResizeObserver | null = null;
 let fullscreenListener: (() => void) | null = null;
@@ -540,6 +541,8 @@ async function fitToWidth(): Promise<void> {
 }
 
 async function loadPdf(): Promise<void> {
+  const activeLoadToken = ++loadToken;
+
   actionMessage.value = "";
   errorMessage.value = "";
   isLoading.value = true;
@@ -576,11 +579,18 @@ async function loadPdf(): Promise<void> {
       withCredentials: props.withCredentials,
     });
     const loadedDocument = await currentLoadTask.promise;
+    if (activeLoadToken !== loadToken) {
+      await loadedDocument.destroy();
+      return;
+    }
 
     pdfDocument = loadedDocument;
     totalPages.value = loadedDocument.numPages;
 
     const firstPage = await loadedDocument.getPage(1);
+    if (activeLoadToken !== loadToken) {
+      return;
+    }
     const firstViewport = firstPage.getViewport({ scale: 1 });
 
     basePageWidth = firstViewport.width;
@@ -602,11 +612,16 @@ async function loadPdf(): Promise<void> {
     renderToken += 1;
     syncVirtualWindow(currentPage.value);
   } catch (error) {
+    if (activeLoadToken !== loadToken) {
+      return;
+    }
     errorMessage.value = "Unable to load this PDF right now.";
     emit("load-error", error);
     console.error("[PdfViewer] load error", error);
   } finally {
-    isLoading.value = false;
+    if (activeLoadToken === loadToken) {
+      isLoading.value = false;
+    }
   }
 }
 
