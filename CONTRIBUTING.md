@@ -32,6 +32,10 @@ npm run smoke
 - Include a clear summary of user-facing behavior changes.
 - Add screenshots/GIFs for UI or toolbar changes.
 - Add or update tests for behavior changes.
+- For viewer/toolbar/style changes, run accessibility checks:
+  - `npm run test:a11y`
+  - keyboard-only validation for impacted flows
+  - screen reader spot-check (VoiceOver or NVDA)
 - Ensure CI passes before requesting review.
 
 ## Commit Messages

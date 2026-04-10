@@ -1,6 +1,7 @@
 name: Deploy Nuxt Playground
 
 on:
+  pull_request:
   push:
     branches: [main]
   workflow_dispatch:
@@ -32,6 +33,7 @@ jobs:
         run: npm run build
         working-directory: playground-nuxt
       - name: Deploy to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

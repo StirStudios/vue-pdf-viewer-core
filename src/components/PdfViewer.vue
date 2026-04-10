@@ -10,6 +10,7 @@ import {
   watch,
 } from "vue";
 import PdfToolbar from "./PdfToolbar.vue";
+import Icon from "./Icon.vue";
 import type { PdfViewerProps } from "../types";
 
 const props = withDefaults(defineProps<PdfViewerProps>(), {
@@ -18,11 +19,12 @@ const props = withDefaults(defineProps<PdfViewerProps>(), {
   initialScale: 1,
   fitToWidth: true,
   minScale: 0.5,
-  maxScale: 3,
+  maxScale: 5,
   zoomStep: 0.1,
   maxConcurrentRenders: 2,
   virtualWindowSize: 2,
   showToolbar: true,
+  theme: "auto",
 });
 
 const emit = defineEmits<{
@@ -36,6 +38,8 @@ const pagesContainerRef = ref<HTMLElement | null>(null);
 const isLoading = ref(false);
 const errorMessage = ref("");
 const actionMessage = ref("");
+const politeAnnouncement = ref("");
+const assertiveAnnouncement = ref("");
 const totalPages = ref(0);
 const currentPage = ref(props.initialPage);
 const scale = ref(props.initialScale);
@@ -51,6 +55,7 @@ let currentLoadTask:
   | import("pdfjs-dist/types/src/display/api").PDFDocumentLoadingTask
   | null = null;
 let renderToken = 0;
+let loadToken = 0;
 let basePageWidth = 0;
 let resizeObserver: ResizeObserver | null = null;
 let fullscreenListener: (() => void) | null = null;
@@ -116,6 +121,7 @@ const maxScale = computed(() => props.maxScale);
 const zoomStep = computed(() => props.zoomStep);
 const maxConcurrentRenders = computed(() => props.maxConcurrentRenders);
 const virtualWindowSize = computed(() => props.virtualWindowSize);
+const themeClass = computed(() => `lpv-theme-${props.theme}`);
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -535,6 +541,8 @@ async function fitToWidth(): Promise<void> {
 }
 
 async function loadPdf(): Promise<void> {
+  const activeLoadToken = ++loadToken;
+
   actionMessage.value = "";
   errorMessage.value = "";
   isLoading.value = true;
@@ -571,11 +579,18 @@ async function loadPdf(): Promise<void> {
       withCredentials: props.withCredentials,
     });
     const loadedDocument = await currentLoadTask.promise;
+    if (activeLoadToken !== loadToken) {
+      await loadedDocument.destroy();
+      return;
+    }
 
     pdfDocument = loadedDocument;
     totalPages.value = loadedDocument.numPages;
 
     const firstPage = await loadedDocument.getPage(1);
+    if (activeLoadToken !== loadToken) {
+      return;
+    }
     const firstViewport = firstPage.getViewport({ scale: 1 });
 
     basePageWidth = firstViewport.width;
@@ -597,11 +612,16 @@ async function loadPdf(): Promise<void> {
     renderToken += 1;
     syncVirtualWindow(currentPage.value);
   } catch (error) {
+    if (activeLoadToken !== loadToken) {
+      return;
+    }
     errorMessage.value = "Unable to load this PDF right now.";
     emit("load-error", error);
     console.error("[PdfViewer] load error", error);
   } finally {
-    isLoading.value = false;
+    if (activeLoadToken === loadToken) {
+      isLoading.value = false;
+    }
   }
 }
 
@@ -793,6 +813,31 @@ watch(currentPage, (page) => {
       syncVirtualWindow(page);
     }
     emit("page-change", page);
+    politeAnnouncement.value = `Page ${page} of ${totalPages.value}.`;
+  }
+});
+
+watch(scale, (value) => {
+  if (totalPages.value > 0) {
+    politeAnnouncement.value = `Zoom ${Math.round(value * 100)} percent.`;
+  }
+});
+
+watch(isLoading, (value) => {
+  if (value) {
+    politeAnnouncement.value = "Loading PDF document.";
+  }
+});
+
+watch(errorMessage, (value) => {
+  if (value) {
+    assertiveAnnouncement.value = value;
+  }
+});
+
+watch(actionMessage, (value) => {
+  if (value) {
+    assertiveAnnouncement.value = value;
   }
 });
 
@@ -826,8 +871,13 @@ onBeforeUnmount(async () => {
 </script>
 
 <template>
-  <div class="lpv-root">
-    <section class="lpv" :class="{ 'lpv-fit': isFitWidth }">
+  <div class="lpv-root" :class="themeClass">
+    <section
+      aria-label="PDF document viewer"
+      class="lpv"
+      :class="{ 'lpv-fit': isFitWidth }"
+      role="region"
+    >
       <PdfToolbar
         v-if="props.showToolbar"
         :can-go-next="canGoNext"
@@ -851,20 +901,37 @@ onBeforeUnmount(async () => {
         @zoom-out="zoomOut"
       />
 
-      <p v-if="actionMessage" class="lpv-message">{{ actionMessage }}</p>
-      <p v-if="errorMessage" class="lpv-message lpv-message-error">
-        {{ errorMessage }}
+      <p class="lpv-sr-only" aria-atomic="true" aria-live="polite">
+        {{ politeAnnouncement }}
       </p>
+      <p class="lpv-sr-only" aria-atomic="true" aria-live="assertive">
+        {{ assertiveAnnouncement }}
+      </p>
+      <p v-if="actionMessage" class="lpv-message">{{ actionMessage }}</p>
       <div
         ref="scrollContainerRef"
-        aria-live="polite"
-        class="lpv-scroll"
+        :aria-busy="isLoading ? 'true' : 'false'"
+        aria-label="PDF pages"
+        :class="[
+          'lpv-scroll',
+          { 'lpv-scroll-loading': isLoading || !!errorMessage },
+        ]"
         role="region"
       >
-        <div v-if="isLoading" class="lpv-loading-overlay" aria-live="polite">
-          <span aria-hidden="true" class="lpv-spinner"></span>
-          Loading PDF...
-        </div>
+        <p
+          v-if="isLoading || errorMessage"
+          :class="[
+            'lpv-scroll-loader',
+            { 'lpv-scroll-loader-error': !isLoading && !!errorMessage },
+          ]"
+          :role="!isLoading && errorMessage ? 'alert' : 'status'"
+          :aria-live="!isLoading && errorMessage ? 'assertive' : 'polite'"
+          aria-atomic="true"
+        >
+          <span v-if="isLoading" aria-hidden="true" class="lpv-spinner"></span>
+          <Icon v-else name="alert-triangle" :size="16" :stroke-width="2.2" />
+          {{ isLoading ? "Loading PDF..." : errorMessage }}
+        </p>
         <div ref="pagesContainerRef" class="lpv-pages">
           <div
             aria-hidden="true"
@@ -875,8 +942,10 @@ onBeforeUnmount(async () => {
             v-for="pageNumber in virtualPageNumbers"
             :key="pageNumber"
             :ref="(el) => setPageRef(pageNumber, el)"
+            :aria-label="`Page ${pageNumber}`"
             class="lpv-page"
             :data-page-number="pageNumber"
+            role="group"
             :style="{ minHeight: `${estimatedPageHeight}px` }"
           >
             <canvas

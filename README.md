@@ -15,6 +15,8 @@ Use this package when you need a Vue PDF viewer with toolbar controls, virtualiz
 - Pagination controls
 - Download and print
 - Fullscreen toggle
+- Polished compact toolbar and status UI
+- Light and dark mode support
 - TypeScript-first API
 
 ## Install
@@ -43,6 +45,8 @@ const pdfUrl = "https://example.com/my.pdf";
 
 ## 60-Second Quick Start (Nuxt 4)
 
+Recommended for Nuxt: enable the Nuxt module so component registration and base CSS are handled automatically.
+
 1. Add the module:
 
 ```ts
@@ -52,7 +56,7 @@ export default defineNuxtConfig({
 });
 ```
 
-2. Use the component with client-only rendering:
+2. Use the globally registered component:
 
 ```vue
 <script setup lang="ts">
@@ -60,9 +64,38 @@ const pdfUrl = "https://example.com/my.pdf";
 </script>
 
 <template>
-  <ClientOnly>
-    <PdfViewer :src="pdfUrl" />
-  </ClientOnly>
+  <PdfViewer :src="pdfUrl" />
+</template>
+```
+
+Alternative (without Nuxt module): direct component import and manual CSS import.
+
+```vue
+<script setup lang="ts">
+import { PdfViewer as CorePdfViewer } from "vue-pdf-viewer-core";
+import "vue-pdf-viewer-core/style.css";
+const pdfUrl = "https://example.com/my.pdf";
+</script>
+
+<template>
+  <CorePdfViewer :src="pdfUrl" />
+</template>
+```
+
+`fitToWidth`, `showToolbar`, `withCredentials`, and `theme` already have defaults in `PdfViewer`, so you only need to pass them when overriding behavior.
+
+If you wrap the viewer inside a Nuxt layer component, prefer forwarding `useAttrs()` (instead of re-declaring all props) so core defaults stay intact:
+
+```vue
+<script setup lang="ts">
+import { useAttrs } from "vue";
+import type { PdfViewerProps } from "vue-pdf-viewer-core";
+
+const attrs = useAttrs() as Partial<PdfViewerProps>;
+</script>
+
+<template>
+  <PdfViewer v-bind="attrs" />
 </template>
 ```
 
@@ -83,11 +116,12 @@ const pdfUrl = "https://example.com/my.pdf";
 - `initialScale` (`1`)
 - `fitToWidth` (`true`)
 - `minScale` (`0.5`)
-- `maxScale` (`3`)
+- `maxScale` (`5`)
 - `zoomStep` (`0.1`)
 - `maxConcurrentRenders` (`2`)
 - `virtualWindowSize` (`2`)
 - `showToolbar` (`true`)
+- `theme` (`"auto"`) accepts `"auto" | "light" | "dark"`
 
 ## Events
 
@@ -97,7 +131,13 @@ const pdfUrl = "https://example.com/my.pdf";
 
 ## Theming
 
-You can override CSS variables to match your app theme:
+Set theme mode directly via prop:
+
+```vue
+<PdfViewer :src="pdfUrl" theme="dark" />
+```
+
+Use `theme="auto"` (default) to follow your app-level `.dark` class, or override CSS variables to match your app theme:
 
 ```css
 :root {
@@ -105,8 +145,27 @@ You can override CSS variables to match your app theme:
   --lpv-panel: #e9e9e9;
   --lpv-border: #d1d1d1;
   --lpv-text: #1f1f1f;
+  --lpv-toolbar-text: #1f1f1f;
+  --lpv-icon-color: #1f1f1f;
+  --lpv-error: #b42318;
+
+  --lpv-surface-radius: 0.45rem;
+  --lpv-inline-gutter: 0.45rem;
+  --lpv-toolbar-top-gap: 0.25rem;
+  --lpv-toolbar-sticky-top: 0.5rem;
+
+  --lpv-tooltip-bg: #fff;
+  --lpv-tooltip-text: #1f1f1f;
+  --lpv-tooltip-border: color-mix(
+    in oklab,
+    var(--lpv-border) 65%,
+    transparent 35%
+  );
+  --lpv-tooltip-shadow: 0 0.28rem 0.72rem rgb(0 0 0 / 10%);
 }
 ```
+
+The default UI is intentionally compact and refined; CSS variables let you re-skin colors and contrast to match your brand.
 
 ## Playgrounds
 
@@ -130,13 +189,42 @@ npm -C playground-nuxt run dev
 
 - If you see `window is not defined`, render the viewer in `<ClientOnly>`.
 - If styles are missing, ensure `import 'vue-pdf-viewer-core/style.css'` is loaded.
+- If a Nuxt layer wrapper uses `defineProps()` and forwards `v-bind="props"`, boolean props can be coerced and override core defaults. Prefer `useAttrs()` pass-through wrappers when you want PdfViewer defaults preserved.
 - If PDFs require auth cookies, pass `:with-credentials="true"`.
+
+## Accessibility
+
+This project targets practical WCAG 2.1/2.2 AA conformance for core viewer and toolbar flows.
+
+Implemented accessibility hardening includes:
+
+- Semantic roles and accessible names for core toolbar and viewer controls
+- Keyboard interaction support for navigation/actions, including menu `Escape` close + focus return
+- Live announcements for loading, errors, page changes, and zoom updates
+- Focus-visible states for interactive controls
+- Theme-aware UI surfaces (toolbar, menu, tooltip) in light/dark/auto modes
+
+- Automated checks: `npm run test:a11y` (axe in Vitest) and CI regression step.
+- Contrast regression checks: `npm run test:contrast` for core light/dark token pairs.
+- Manual checks: keyboard-only and screen-reader matrices in `docs/accessibility/`.
+- Theme checks: contrast audit notes for light/dark/auto themes in `docs/accessibility/contrast-audit.md`.
+- Scope: `PdfViewer`, `PdfToolbar`, and default styles in `src/style.css`.
+
+Known limitations:
+
+- Canvas-rendered PDF page content is not semantically exposed to assistive tech by default.
+- This is a best-effort WCAG AA implementation, not a legal certification.
+- Formal certification/legal conformance claims require external third-party audit.
 
 ## Project Docs
 
 - Contributing: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
 - Code of Conduct: [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md)
 - Security: [`SECURITY.md`](./SECURITY.md)
+- Accessibility Baseline Report: [`docs/accessibility/baseline-report.md`](./docs/accessibility/baseline-report.md)
+- Keyboard Matrix: [`docs/accessibility/keyboard-matrix.md`](./docs/accessibility/keyboard-matrix.md)
+- Screen Reader Matrix: [`docs/accessibility/screen-reader-matrix.md`](./docs/accessibility/screen-reader-matrix.md)
+- Contrast Audit: [`docs/accessibility/contrast-audit.md`](./docs/accessibility/contrast-audit.md)
 
 ## License
 
