@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1
+
+- Fix stale PDF load handling so old requests cannot override current viewer loading state.
+- Update deploy workflows so PR checks run for playground deploy jobs without deploying Pages from PR events.
+
 ## 0.3.0
 
 - Accessibility hardening for core viewer + toolbar flows toward best-effort WCAG 2.1/2.2 AA.
