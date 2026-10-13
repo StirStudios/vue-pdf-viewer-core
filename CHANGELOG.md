@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.0
 
 - Add a `title` prop that prefixes the viewer, pages and toolbar accessible names, so pages with several viewers expose unique landmarks (axe `landmark-unique`).
 - Isolate each viewer's stacking context so the sticky toolbar (`z-index: 60`) no longer paints over host page headers.
