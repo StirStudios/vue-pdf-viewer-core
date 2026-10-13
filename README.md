@@ -122,6 +122,7 @@ const attrs = useAttrs() as Partial<PdfViewerProps>;
 - `virtualWindowSize` (`2`)
 - `showToolbar` (`true`)
 - `theme` (`"auto"`) accepts `"auto" | "light" | "dark"`
+- `title` (none) prefixes the accessible names of the viewer region, pages region and toolbar, for example "Floor plan, PDF document viewer". Set it when a page has more than one viewer so their landmarks are unique.
 
 ## Events
 
@@ -164,6 +165,18 @@ Use `theme="auto"` (default) to follow your app-level `.dark` class, or override
   --lpv-tooltip-shadow: 0 0.28rem 0.72rem rgb(0 0 0 / 10%);
 }
 ```
+
+### Sticky toolbar offset
+
+The toolbar sticks to the top of the viewport. When your page has fixed or sticky chrome such as a site header, set `--lpv-toolbar-offset` on the viewer (or any ancestor) so the toolbar sticks below it:
+
+```css
+.my-page {
+  --lpv-toolbar-offset: var(--header-height);
+}
+```
+
+Each viewer is its own stacking context (`isolation: isolate`), so the toolbar and its menus never paint over page content outside the viewer.
 
 The default UI is intentionally compact and refined; CSS variables let you re-skin colors and contrast to match your brand.
 

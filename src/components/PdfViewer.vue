@@ -33,6 +33,15 @@ const emit = defineEmits<{
   (event: "action-error", error: unknown): void;
 }>();
 
+const withTitle = (label: string) => {
+  const title = props.title?.trim();
+
+  return title ? `${title}, ${label}` : label;
+};
+const viewerLabel = computed(() => withTitle("PDF document viewer"));
+const pagesLabel = computed(() => withTitle("PDF pages"));
+const toolbarLabel = computed(() => withTitle("PDF viewer toolbar"));
+
 const scrollContainerRef = ref<HTMLElement | null>(null);
 const pagesContainerRef = ref<HTMLElement | null>(null);
 const isLoading = ref(false);
@@ -873,7 +882,7 @@ onBeforeUnmount(async () => {
 <template>
   <div class="lpv-root" :class="themeClass">
     <section
-      aria-label="PDF document viewer"
+      :aria-label="viewerLabel"
       class="lpv"
       :class="{ 'lpv-fit': isFitWidth }"
       role="region"
@@ -885,6 +894,7 @@ onBeforeUnmount(async () => {
         :current-page="currentPage"
         :has-multiple-pages="hasMultiplePages"
         :is-fullscreen="isFullscreen"
+        :label="toolbarLabel"
         :total-pages="totalPages"
         :zoom-percent="zoomPercent"
         @commit-page="goToPage"
@@ -911,7 +921,7 @@ onBeforeUnmount(async () => {
       <div
         ref="scrollContainerRef"
         :aria-busy="isLoading ? 'true' : 'false'"
-        aria-label="PDF pages"
+        :aria-label="pagesLabel"
         :class="[
           'lpv-scroll',
           { 'lpv-scroll-loading': isLoading || !!errorMessage },

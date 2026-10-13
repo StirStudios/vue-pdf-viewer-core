@@ -11,6 +11,11 @@ export interface PdfViewerProps {
   virtualWindowSize?: number;
   showToolbar?: boolean;
   theme?: "auto" | "light" | "dark";
+  /**
+   * Document title used to prefix the viewer's accessible names, so several
+   * viewers on one page expose unique landmarks.
+   */
+  title?: string;
 }
 
 export interface PdfToolbarProps {
@@ -21,4 +26,5 @@ export interface PdfToolbarProps {
   canGoNext: boolean;
   zoomPercent: string;
   isFullscreen: boolean;
+  label?: string;
 }

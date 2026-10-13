@@ -32,6 +32,56 @@ describe("PdfViewer", () => {
     document.body.innerHTML = "";
   });
 
+  it("prefixes accessible names with the title so several viewers have unique landmarks", async () => {
+    const host = defineComponent({
+      setup: () => () =>
+        h("main", [
+          h(PdfViewer, {
+            src: "https://example.com/a.pdf",
+            title: "Floor plan – 2nd Floor",
+          }),
+          h(PdfViewer, {
+            src: "https://example.com/b.pdf",
+            title: "Floor plan – 3rd Floor",
+          }),
+        ]),
+    });
+    const wrapper = mount(host, { attachTo: document.body });
+
+    await Promise.resolve();
+    await wrapper.vm.$nextTick();
+
+    const [first] = wrapper.findAll(".lpv");
+
+    expect(first.attributes("aria-label")).toBe(
+      "Floor plan – 2nd Floor, PDF document viewer",
+    );
+    expect(first.find(".lpv-scroll").attributes("aria-label")).toBe(
+      "Floor plan – 2nd Floor, PDF pages",
+    );
+    expect(first.find(".lpv-toolbar").attributes("aria-label")).toBe(
+      "Floor plan – 2nd Floor, PDF viewer toolbar",
+    );
+
+    const results = await axe(wrapper.element, {
+      runOnly: ["landmark-unique"],
+    });
+
+    expect(results.violations).toEqual([]);
+  });
+
+  it("keeps the default accessible names when the title is blank", async () => {
+    const wrapper = mount(PdfViewer, {
+      props: { src: "https://example.com/file.pdf", title: "  " },
+    });
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find(".lpv").attributes("aria-label")).toBe(
+      "PDF document viewer",
+    );
+  });
+
   it("renders and initializes without throwing", async () => {
     const wrapper = mount(PdfViewer, {
       props: { src: "https://example.com/file.pdf" },
@@ -45,6 +95,12 @@ describe("PdfViewer", () => {
     expect(wrapper.find(".lpv-root").classes()).toContain("lpv-theme-auto");
     expect(wrapper.find(".lpv[role='region']").attributes("aria-label")).toBe(
       "PDF document viewer",
+    );
+    expect(wrapper.find(".lpv-scroll").attributes("aria-label")).toBe(
+      "PDF pages",
+    );
+    expect(wrapper.find(".lpv-toolbar").attributes("aria-label")).toBe(
+      "PDF viewer toolbar",
     );
   });
 

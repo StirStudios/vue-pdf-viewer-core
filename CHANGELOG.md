@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Add a `title` prop that prefixes the viewer, pages and toolbar accessible names, so pages with several viewers expose unique landmarks (axe `landmark-unique`).
+- Isolate each viewer's stacking context so the sticky toolbar (`z-index: 60`) no longer paints over host page headers.
+- Add `--lpv-toolbar-offset` to stick the toolbar below fixed page chrome.
+
 ## 0.3.1
 
 - Fix stale PDF load handling so old requests cannot override current viewer loading state.

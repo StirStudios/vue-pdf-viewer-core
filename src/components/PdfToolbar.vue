@@ -104,7 +104,7 @@ const zoomButtonLabel = computed(
 <template>
   <div
     ref="toolbarRef"
-    aria-label="PDF viewer toolbar"
+    :aria-label="props.label ?? 'PDF viewer toolbar'"
     class="lpv-toolbar"
     role="toolbar"
   >

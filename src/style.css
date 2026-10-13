@@ -10,6 +10,9 @@
 
 .lpv-root {
   width: 100%;
+  /* Keeps the toolbar, menus and tooltips stacking inside the viewer so they
+     never paint over host page chrome such as a sticky site header. */
+  isolation: isolate;
 }
 
 .lpv {
@@ -154,7 +157,7 @@
 
 .lpv-toolbar {
   position: sticky;
-  top: var(--lpv-toolbar-sticky-top);
+  top: calc(var(--lpv-toolbar-offset, 0px) + var(--lpv-toolbar-sticky-top));
   z-index: 60;
   display: flex;
   align-items: center;
