@@ -58,11 +58,10 @@ const isFullscreen = ref(false);
 
 let pdfjs: typeof import("pdfjs-dist") | null = null;
 let pdfDocument:
-  | import("pdfjs-dist/types/src/display/api").PDFDocumentProxy
-  | null = null;
+  import("pdfjs-dist/types/src/display/api").PDFDocumentProxy | null = null;
 let currentLoadTask:
-  | import("pdfjs-dist/types/src/display/api").PDFDocumentLoadingTask
-  | null = null;
+  import("pdfjs-dist/types/src/display/api").PDFDocumentLoadingTask | null =
+  null;
 let renderToken = 0;
 let loadToken = 0;
 let basePageWidth = 0;
