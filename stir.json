@@ -1,0 +1,7 @@
+{
+  "parts": [
+    "nuxt"
+  ],
+  "stage": "tool",
+  "deploy": "none"
+}
